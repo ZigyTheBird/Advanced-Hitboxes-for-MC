@@ -1,0 +1,6 @@
+[
+  "advanced_hitboxes:animations/entity/hitbox_test.animation.json",
+  "advanced_hitboxes:geo/entity/hitbox_test.geo.json",
+  "advanced_hitboxes:animations/entity/player_hitbox.animation.json",
+  "advanced_hitboxes:geo/entity/player_hitbox.geo.json"
+]
