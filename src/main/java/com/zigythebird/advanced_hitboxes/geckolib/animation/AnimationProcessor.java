@@ -7,7 +7,6 @@ import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimati
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MolangQueries;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Mth;
@@ -266,7 +265,6 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	 * Apply transformations and settings prior to acting on any animation-related functionality
 	 */
 	public void preAnimationSetup(AnimationState<T> animationState, double animTime) {
-		MolangQueries.updateActor(animationState, animTime);
 		this.model.applyMolangQueries(animationState, animTime);
 	}
 

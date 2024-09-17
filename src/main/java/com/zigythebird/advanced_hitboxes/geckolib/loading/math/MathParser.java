@@ -120,19 +120,10 @@ public class MathParser {
     }
 
     /**
-     * Register a new {@link Variable} with the math parsing system
-     * <p>
-     * Technically supports overriding by matching keys, though you should try to update the existing variable instances instead if possible
-     */
-    public static void registerVariable(Variable variable) {
-        MolangQueries.registerVariable(variable);
-    }
-
-    /**
      * @return The registered {@link Variable} instance for the given name
      */
     public static Variable getVariableFor(String name) {
-        return MolangQueries.getVariableFor(name);
+        return null;
     }
 
     /**
@@ -603,9 +594,6 @@ public class MathParser {
      * Functionally this is just a confirmation-by-elimination check, since names don't really have a defined form
      */
     protected static boolean isLikelyVariable(String string) {
-        if (MolangQueries.isExistingVariable(string))
-            return true;
-
-        return !isNumeric(string) && !isFunctionRegistered(string) && !Operator.isOperator(string) && !string.equals("?") && !string.equals(":");
+        return false;
     }
 }

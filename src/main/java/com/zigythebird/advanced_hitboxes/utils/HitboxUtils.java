@@ -46,9 +46,9 @@ public class HitboxUtils {
             Vector3d size = bone.getScaleVector().mul(cube.size().x, cube.size().y, cube.size().z);
             Vector3d rotation = new Vector3d(cube.rotation().x, cube.rotation().y, cube.rotation().z);
             Vector3d boneRotation = bone.getRotationVector();
-            ModMath.rotateAroundPivot(rotation, position, (float) cube.pivot().x, (float) cube.pivot().y, (float) cube.pivot().z);
+            ModMath.rotateAroundPivot(rotation, position, (float) cube.pivot().x / 16, (float) cube.pivot().y / 16, (float) cube.pivot().z / 16);
             position.add(bone.getPositionVector());
-            ModMath.rotateAroundPivot(boneRotation, position, bone.getPivotX(), bone.getPivotY(), bone.getPivotZ());
+            ModMath.rotateAroundPivot(boneRotation, position, bone.getPivotX() / 16, bone.getPivotY() / 16, bone.getPivotZ() / 16);
             rotation.add(boneRotation);
             applyParentBoneTransforms(bone, position, size);
             GeoBone parent = bone.getParent();
@@ -56,14 +56,14 @@ public class HitboxUtils {
                 rotation.add(parent.getRotationVector());
                 parent = parent.getParent();
             }
-            rotation = new Vector3d(Mth.wrapDegrees(rotation.x), Mth.wrapDegrees(rotation.y), Mth.wrapDegrees(rotation.z));
+            rotation = new Vector3d(Mth.wrapDegrees(rotation.x * Mth.RAD_TO_DEG), Mth.wrapDegrees(rotation.y * Mth.RAD_TO_DEG), Mth.wrapDegrees(rotation.z * Mth.RAD_TO_DEG));
             position.add(size.x/32, size.y/32, size.z/32);
-            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(-position.x, position.y, -position.z), 0, ((EntityInterface)entity).advanced_Hitboxes$commonYBodyRot());
+            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(position.x, position.y, position.z), 0, ((EntityInterface)entity).advanced_Hitboxes$commonYBodyRot());
             if (hitbox == null) {
-                hitboxes.add(new OBB(bone.getName(), entity.position().add(finalPosition), null, ModMath.sizeInPixelsToMetres(size), rotation, false));
+                hitboxes.add(new OBB(bone.getName(), entity.position().add(finalPosition), ModMath.vector3dToVec3(size.div(16)), rotation));
             }
             else {
-                hitbox.update(entity.position().add(finalPosition), null, ModMath.sizeInPixelsToMetres(size), rotation, false);
+                hitbox.update(entity.position().add(finalPosition), ModMath.vector3dToVec3(size.div(16)), rotation);
             }
         }
     }
@@ -80,7 +80,7 @@ public class HitboxUtils {
     public static void applyParentBoneTransforms(GeoBone bone, Vector3d position, Vector3d size) {
         GeoBone parent = bone.getParent();
         if (parent != null) {
-            ModMath.rotateAroundPivot(parent.getRotationVector(), position, parent.getPivotX(), parent.getPivotY(), parent.getPivotZ());
+            ModMath.rotateAroundPivot(parent.getRotationVector(), position, parent.getPivotX() / 16, parent.getPivotY() / 16, parent.getPivotZ() / 16);
             position.add(parent.getPositionVector());
             size.mul(parent.getScaleVector());
             applyParentBoneTransforms(parent, position, size);

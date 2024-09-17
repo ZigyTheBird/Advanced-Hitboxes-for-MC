@@ -5,72 +5,104 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3d;
+import org.joml.*;
 
 public class AdvancedHitboxRenderer {
-    public static void renderAdvancedHitboxes(PoseStack poseStack, VertexConsumer buffer, Entity entity, float red, float green, float blue, float alpha) {
+    public static void renderAdvancedHitboxes(VertexConsumer buffer, Entity entity, double camX, double camY, double camZ, float red, float green, float blue, float alpha) {
         if (entity instanceof AdvancedHitboxEntity || entity instanceof Player) {
-            poseStack.pushPose();
-            double d0 = Mth.lerp(red, entity.xOld, entity.getX());
-            double d1 = Mth.lerp(red, entity.yOld, entity.getY());
-            double d2 = Mth.lerp(red, entity.zOld, entity.getZ());
-            poseStack.translate(-d0, -d1, -d2);
+            PoseStack poseStack = new PoseStack();
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {
                 if (hitbox instanceof OBB) {
                     poseStack.pushPose();
                     OBB obb = (OBB) hitbox;
-                    poseStack.translate(obb.center.x, obb.center.y, obb.center.z);
-                    renderOBB(new OBB(obb.name, Vec3.ZERO, null, obb.size, new Vector3d(0, 0, 0), false), poseStack, buffer, red, green, blue, alpha);
+                    poseStack.translate(obb.center.x - camX, obb.center.y - camY, obb.center.z - camZ);
+                    renderOBB(new OBB(obb.name, Vec3.ZERO, obb.size, new Vector3d(obb.rotation)), poseStack, buffer, red, green, blue, alpha);
                     poseStack.popPose();
                 }
             }
-            poseStack.popPose();
         }
     }
 
     public static void renderOBB(OBB obb, PoseStack poseStack, VertexConsumer consumer, float red, float green, float blue, float alpha) {
-        PoseStack.Pose posestack$pose = poseStack.last();
+        Vector3d rotation = obb.rotation;
 
-        Vec3 scaledAxisX = obb.axisX.scale(obb.extent.x);
-        Vec3 scaledAxisY = obb.axisY.scale(obb.extent.y);
-        Vec3 scaledAxisZ = obb.axisZ.scale(obb.extent.z);
-        Vec3 vertex1 = obb.center.subtract(scaledAxisZ).subtract(scaledAxisX).subtract(scaledAxisY);
-        Vec3 vertex2 = obb.center.add(scaledAxisZ).add(scaledAxisX).add(scaledAxisY);
+        poseStack.mulPose(new Quaternionf().rotationXYZ(
+                (float)rotation.x() * Mth.DEG_TO_RAD,
+                (float)rotation.y() * Mth.DEG_TO_RAD,
+                (float)rotation.z() * Mth.DEG_TO_RAD));
 
-        float f = (float) vertex1.x;
-        float f1 = (float) vertex1.y;
-        float f2 = (float) vertex1.z;
-        float f3 = (float) vertex2.x;
-        float f4 = (float) vertex2.y;
-        float f5 = (float) vertex2.z;
+        Matrix3f normalisedPoseState = poseStack.last().normal();
+        Matrix4f poseState = new Matrix4f(poseStack.last().pose());
 
-        consumer.addVertex(posestack$pose, f, f1, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f1, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f1, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f4, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f1, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, 1.0F);
-        consumer.addVertex(posestack$pose, f, f1, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, 1.0F);
-        consumer.addVertex(posestack$pose, f3, f1, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f4, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f4, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, -1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f4, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, -1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f4, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, 1.0F);
-        consumer.addVertex(posestack$pose, f, f4, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, 1.0F);
-        consumer.addVertex(posestack$pose, f, f4, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, -1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f1, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, -1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f, f1, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f1, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f1, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, -1.0F);
-        consumer.addVertex(posestack$pose, f3, f1, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, -1.0F);
-        consumer.addVertex(posestack$pose, f, f4, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f4, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 1.0F, 0.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f1, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f4, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(posestack$pose, f3, f4, f2).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, 1.0F);
-        consumer.addVertex(posestack$pose, f3, f4, f5).setColor(red, green, blue, alpha).setNormal(posestack$pose, 0.0F, 0.0F, 1.0F);
+        obb.calculateOrientation();
+        obb.updateVertex();
+
+        Vec3[] obbVertices = obb.vertices;
+
+        for (int i = 0; i < 12; i++) {
+            Vec3[] vertices;
+            Vector3f normal1;
+
+            switch (i) {
+                case 0 -> {
+                    normal1 = Direction.WEST.step();
+                    vertices = new Vec3[]{obbVertices[2], obbVertices[3], obbVertices[0], obbVertices[1]};
+                }
+                case 1 -> {
+                    normal1 = Direction.EAST.step();
+                    vertices = new Vec3[]{obbVertices[7], obbVertices[6], obbVertices[5], obbVertices[4]};
+                }
+                case 2 -> {
+                    normal1 = Direction.NORTH.step();
+                    vertices = new Vec3[]{obbVertices[3], obbVertices[7], obbVertices[4], obbVertices[0]};
+                }
+                case 3 -> {
+                    normal1 = Direction.SOUTH.step();
+                    vertices = new Vec3[]{obbVertices[6], obbVertices[2], obbVertices[1], obbVertices[5]};
+                }
+                case 4 -> {
+                    normal1 = Direction.UP.step();
+                    vertices = new Vec3[]{obbVertices[2], obbVertices[6], obbVertices[7], obbVertices[3]};
+                }
+                case 5 -> {
+                    normal1 = Direction.DOWN.step();
+                    vertices = new Vec3[]{obbVertices[0], obbVertices[4], obbVertices[5], obbVertices[1]};
+                }
+                case 6 -> {
+                    normal1 = Direction.WEST.step();
+                    vertices = new Vec3[]{obbVertices[0], obbVertices[3], obbVertices[1], obbVertices[2]};
+                }
+                case 7 -> {
+                    normal1 = Direction.EAST.step();
+                    vertices = new Vec3[]{obbVertices[5], obbVertices[6], obbVertices[4], obbVertices[7]};
+                }
+                case 8 -> {
+                    normal1 = Direction.NORTH.step();
+                    vertices = new Vec3[]{obbVertices[0], obbVertices[3], obbVertices[4], obbVertices[7]};
+                }
+                case 9 -> {
+                    normal1 = Direction.SOUTH.step();
+                    vertices = new Vec3[]{obbVertices[1], obbVertices[2], obbVertices[5], obbVertices[6]};
+                }
+                case 10 -> {
+                    normal1 = Direction.UP.step();
+                    vertices = new Vec3[]{obbVertices[2], obbVertices[3], obbVertices[6], obbVertices[7]};
+                }
+                default -> {
+                    normal1 = Direction.DOWN.step();
+                    vertices = new Vec3[]{obbVertices[0], obbVertices[1], obbVertices[4], obbVertices[5]};
+                }
+            }
+
+            for (Vec3 vertex : vertices) {
+                Vector3f normal = normalisedPoseState.transform(normal1);
+                consumer.addVertex(poseState, (float) vertex.x, (float) vertex.y, (float) vertex.z).setColor(red, green, blue, alpha).setNormal(normal.x, normal.y, normal.z);
+            }
+        }
     }
 }

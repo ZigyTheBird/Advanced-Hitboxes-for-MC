@@ -4,19 +4,15 @@ import com.google.gson.Gson;
 import com.mojang.logging.LogUtils;
 import com.zigythebird.advanced_hitboxes.client.AdvancedHitboxesModClient;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.entity.ExampleAdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.HitboxCache;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.zigythebird.advanced_hitboxes.registry.ModEntities;
+import com.zigythebird.advanced_hitboxes.registry.ModItems;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -31,16 +27,6 @@ public class AdvancedHitboxesMod
 
     private static boolean isDoneLoading = false;
     private static final List<Entity> loadingQueue = new ArrayList<>();
-
-    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(
-            BuiltInRegistries.ENTITY_TYPE,
-            MOD_ID
-    );
-
-    public static final DeferredHolder<EntityType<?>, EntityType<ExampleAdvancedHitboxEntity>> EXAMPLE_ENTITY = ENTITIES.register(
-            "example_entity",
-            () -> EntityType.Builder.of(ExampleAdvancedHitboxEntity::new, MobCategory.MISC).sized(1, 1).build("example_entity")
-    );
 
     public static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
@@ -73,7 +59,8 @@ public class AdvancedHitboxesMod
 
     public AdvancedHitboxesMod(IEventBus modEventBus, ModContainer modContainer)
     {
-        ENTITIES.register(modEventBus);
+        ModEntities.ENTITIES.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
         modEventBus.addListener(AdvancedHitboxesMod::ClientInit);
         HitboxCache.reload();
         isDoneLoading = true;

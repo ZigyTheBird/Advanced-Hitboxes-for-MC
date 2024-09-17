@@ -3,9 +3,10 @@
   "package": "com.zigythebird.advanced_hitboxes.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "client.EntityRenderDispatcherMixin"
+    "client.LevelRendererMixin"
   ],
   "mixins": [
+    "accessors.LevelAccessor",
     "common.EntityMixin",
     "common.PlayerMixin",
     "common.ProjectileUtilMixin"

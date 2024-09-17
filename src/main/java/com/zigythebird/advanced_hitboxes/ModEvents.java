@@ -7,6 +7,7 @@ import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
 import com.zigythebird.advanced_hitboxes.misc.EntityInterface;
+import com.zigythebird.advanced_hitboxes.registry.ModEntities;
 import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,7 +23,7 @@ public class ModEvents {
     public static class modEventBus {
         @SubscribeEvent
         public static void registerEntityAttributes(EntityAttributeCreationEvent event) {
-            event.put(AdvancedHitboxesMod.EXAMPLE_ENTITY.get(), ExampleAdvancedHitboxEntity.createMobAttributes().build());
+            event.put(ModEntities.EXAMPLE_ENTITY.get(), ExampleAdvancedHitboxEntity.createMobAttributes().build());
         }
     }
 

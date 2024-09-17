@@ -14,7 +14,6 @@ public class OBB extends AdvancedHitbox {
     public Vec3 center;
     public Vector3d rotation;
     public Vec3 size;
-    public Vec3 pivot;
 
     public Vec3 extent;
     public Vec3 axisX;
@@ -34,54 +33,35 @@ public class OBB extends AdvancedHitbox {
     public Vec3[] vertices;
     public Matrix3d orientation;
 
-    public OBB(String name, Vec3 center, Vec3 pivot, Vec3 size, Vector3d rotation) {
-        this(name, center, pivot, size, rotation, true);
-    }
-
-    public OBB(String name, Vec3 center, Vec3 pivot, Vec3 size, Vector3d rotation, boolean rotateAroundPivot) {
+    public OBB(String name, Vec3 center, Vec3 size, Vector3d rotation) {
         super(name);
         this.center = center;
         this.size = size;
         this.extent = new Vec3(size.x/2, size.y/2, size.z/2);
-        this.pivot = pivot;
-        if (rotateAroundPivot) {
-            rotateAroundPivot(rotation, pivot);
-        }
-        else {
-            this.rotation = rotation;
-        }
+        this.rotation = rotation;
         calculateOrientation();
     }
 
-    public OBB(String name, Vec3 center, Vec3 pivot, double xSize, double ySize, double zSize, double xRot, double yRot, double zRot) {
-        this(name, center, pivot, new Vec3(xSize, ySize, zSize), new Vector3d(xRot, yRot, zRot));
+    public OBB(String name, Vec3 center, double xSize, double ySize, double zSize, double xRot, double yRot, double zRot) {
+        this(name, center, new Vec3(xSize, ySize, zSize), new Vector3d(xRot, yRot, zRot));
     }
 
     public OBB(String name, AABB box) {
-        this(name, box.getCenter(), box.getCenter(), new Vec3(box.getXsize(), box.getYsize(), box.getZsize()), new Vector3d(0, 0, 0), false);
+        this(name, box.getCenter(), new Vec3(box.getXsize(), box.getYsize(), box.getZsize()), new Vector3d(0, 0, 0));
     }
 
     public OBB(String name, OBB obb) {
-        this(name, obb.center, obb.pivot, obb.size, obb.rotation, false);
+        this(name, obb.center, obb.size, new Vector3d(obb.rotation));
     }
 
     public OBB(OBB obb) {
         this(obb.name, obb);
     }
 
-//    public static final Codec<OBB> CODEC;
-
-    public void update(Vec3 center, Vec3 pivot, Vec3 size, Vector3d rotation, boolean rotateAroundPivot) {
+    public void update(Vec3 center, Vec3 size, Vector3d rotation) {
         this.center = center;
         this.size = size;
-        this.rotation = null;
-        this.pivot = pivot;
-        if (rotateAroundPivot) {
-            rotateAroundPivot(rotation, pivot);
-        }
-        else {
-            this.rotation = rotation;
-        }
+        this.rotation = rotation;
         this.extent = new Vec3(size.x/2, size.y/2, size.z/2);
         calculateOrientation();
     }
@@ -119,7 +99,7 @@ public class OBB extends AdvancedHitbox {
     }
 
     public OBB inflate(double x, double y, double z) {
-        return new OBB(this.name, this.center, this.pivot, this.size.x + (x * 2), this.size.y + (y * 2), this.size.z + (z * 2), this.rotation.x, this.rotation.y, this.rotation.z);
+        return new OBB(this.name, this.center, this.size.x + (x * 2), this.size.y + (y * 2), this.size.z + (z * 2), this.rotation.x, this.rotation.y, this.rotation.z);
     }
 
     public OBB inflate(double value) {
@@ -178,14 +158,14 @@ public class OBB extends AdvancedHitbox {
         this.scaledAxisX = this.axisX.scale(this.extent.x);
         this.scaledAxisY = this.axisY.scale(this.extent.y);
         this.scaledAxisZ = this.axisZ.scale(this.extent.z);
-        this.vertex1 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY);
-        this.vertex2 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY);
-        this.vertex3 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY);
-        this.vertex4 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY);
-        this.vertex5 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY);
-        this.vertex6 = this.center.add(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY);
-        this.vertex7 = this.center.add(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY);
-        this.vertex8 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY);
+        this.vertex1 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY); //bottom left back
+        this.vertex2 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY); //bottom right back
+        this.vertex3 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY); //top right back
+        this.vertex4 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY); //top left back
+        this.vertex5 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY); //bottom left front
+        this.vertex6 = this.center.add(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY); //bottom right front
+        this.vertex7 = this.center.add(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY); //top right front
+        this.vertex8 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY); //top left front
         this.vertices = new Vec3[]{this.vertex1, this.vertex2, this.vertex3, this.vertex4, this.vertex5, this.vertex6, this.vertex7, this.vertex8};
         return this;
     }
@@ -322,18 +302,4 @@ public class OBB extends AdvancedHitbox {
             return longSpan >= sumSpan;
         }
     }
-
-//    static {
-//        CODEC = Codec.FLOAT.listOf().comapFlatMap((list) -> {
-//            return Util.fixedSize(list, 12).map((listx) -> {
-//                return new OBB(new Vec3(listx.get(0), listx.get(1), listx.get(2)), new Vec3(listx.get(3), listx.get(4), listx.get(5)), new Vec3(listx.get(6), listx.get(7), listx.get(8)), new Vector3d(listx.get(9), listx.get(10), listx.get(11)));
-//            });
-//        }, (obb) -> {
-//            Vec3 center = obb.center;
-//            Vec3 pivot = obb.pivot;
-//            Vec3 size = obb.size;
-//            Vector3d rotation = obb.rotation;
-//            return List.of((float) center.x, (float) center.y, (float) center.z, (float) pivot.x, (float) pivot.y, (float) pivot.z, (float) size.x, (float) size.y, (float) size.z, rotation.x, rotation.y, rotation.z);
-//        });
-//    }
 }

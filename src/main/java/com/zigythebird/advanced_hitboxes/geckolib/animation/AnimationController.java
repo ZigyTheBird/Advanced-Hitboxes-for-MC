@@ -5,15 +5,13 @@ import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.*;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event.data.KeyFrameData;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathParser;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MolangQueries;
+import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.Constant;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Direction.Axis;
 import org.jetbrains.annotations.Nullable;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 
 import java.util.*;
 import java.util.function.Function;
@@ -438,8 +436,6 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
             }
 
             if (this.currentAnimation != null) {
-                MathParser.setVariable(MolangQueries.ANIM_TIME, () -> 0);
-
                 for (BoneAnimation boneAnimation : this.currentAnimation.animation().boneAnimations()) {
                     BoneAnimationQueue boneAnimationQueue = this.boneAnimationQueues.get(boneAnimation.boneName());
                     BoneSnapshot boneSnapshot = this.boneSnapshots.get(boneAnimation.boneName());
@@ -521,8 +517,6 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
         }
 
         final double finalAdjustedTick = adjustedTick;
-
-        MathParser.setVariable(MolangQueries.ANIM_TIME, () -> finalAdjustedTick / 20d);
 
         for (BoneAnimation boneAnimation : this.currentAnimation.animation().boneAnimations()) {
             BoneAnimationQueue boneAnimationQueue = this.boneAnimationQueues.get(boneAnimation.boneName());
