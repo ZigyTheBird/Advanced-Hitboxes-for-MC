@@ -66,38 +66,6 @@ public class OBB extends AdvancedHitbox {
         calculateOrientation();
     }
 
-    public void rotateAroundPivot(Vector3d rotation, Vec3 pivot) {
-        if (this.rotation != null) {
-            this.rotation = rotation.add(rotation);
-        }
-        else {
-            this.rotation = rotation;
-        }
-
-        //"l" is short for length here
-        double l1 = Math.sqrt(Math.pow(this.center.z - pivot.z, 2) + Math.pow(this.center.y - pivot.y, 2));
-        double inverse1 = Math.atan2(Math.abs((this.center.y - pivot.y) / l1), Math.abs((this.center.z - pivot.z) / l1));
-        inverse1 = Double.isNaN(inverse1) ? 0 : inverse1;
-        double transformL1 = Math.sqrt((2 * Math.pow(l1, 2)) - (2 * Math.pow(l1, 2)) * Math.cos(Math.toRadians(rotation.x)));
-        this.center = this.center.add(0,
-                Math.cos(Math.toRadians(rotation.x / 2) - inverse1) * transformL1,
-                Math.sin(Math.toRadians(rotation.x / 2) - inverse1) * transformL1);
-        double l2 = Math.sqrt(Math.pow(this.center.z - pivot.z, 2) + Math.pow(this.center.x - pivot.x, 2));
-        double inverse2 = Math.atan2(Math.abs((this.center.x - pivot.x) / l2), Math.abs((this.center.z - pivot.z) / l2));
-        inverse2 = Double.isNaN(inverse2) ? 0 : inverse2;
-        double transformL2 = Math.sqrt((2 * Math.pow(l2, 2)) - (2 * Math.pow(l2, 2)) * Math.cos(Math.toRadians(rotation.y)));
-        this.center = this.center.add(0,
-                Math.cos(Math.toRadians(rotation.y / 2) - inverse2) * transformL2,
-                Math.sin(Math.toRadians(rotation.y / 2) - inverse2) * transformL2);
-        double l3 = Math.sqrt(Math.pow(this.center.x - pivot.x, 2) + Math.pow(this.center.y - pivot.y, 2));
-        double inverse3 = Math.atan2(Math.abs((this.center.y - pivot.y) / l3), Math.abs((this.center.x - pivot.x) / l3));
-        inverse3 = Double.isNaN(inverse3) ? 0 : inverse3;
-        double transformL3 = Math.sqrt((2 * Math.pow(l3, 2)) - (2 * Math.pow(l3, 2)) * Math.cos(Math.toRadians(rotation.z)));
-        this.center = this.center.add(0,
-                Math.cos(Math.toRadians(rotation.z / 2) - inverse3) * transformL3,
-                Math.sin(Math.toRadians(rotation.z / 2) - inverse3) * transformL3);
-    }
-
     public OBB inflate(double x, double y, double z) {
         return new OBB(this.name, this.center, this.size.x + (x * 2), this.size.y + (y * 2), this.size.z + (z * 2), this.rotation.x, this.rotation.y, this.rotation.z);
     }

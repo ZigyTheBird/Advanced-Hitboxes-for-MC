@@ -31,10 +31,7 @@ public class AdvancedHitboxRenderer {
     public static void renderOBB(OBB obb, PoseStack poseStack, VertexConsumer consumer, float red, float green, float blue, float alpha) {
         Vector3d rotation = obb.rotation;
 
-        poseStack.mulPose(new Quaternionf().rotationXYZ(
-                (float)rotation.x() * Mth.DEG_TO_RAD,
-                (float)rotation.y() * Mth.DEG_TO_RAD,
-                (float)rotation.z() * Mth.DEG_TO_RAD));
+        poseStack.mulPose(new Quaternionf().rotationXYZ((float)rotation.x(), (float)rotation.y(), (float)rotation.z()));
 
         Matrix3f normalisedPoseState = poseStack.last().normal();
         Matrix4f poseState = new Matrix4f(poseStack.last().pose());
