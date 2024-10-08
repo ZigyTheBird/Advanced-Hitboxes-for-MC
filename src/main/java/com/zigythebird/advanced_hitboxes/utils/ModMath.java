@@ -10,21 +10,21 @@ public class ModMath {
     public static void rotateAroundPivot(Vector3d rotation, Vector3d rotationToApply, Vector3d position, float pivotX, float pivotY, float pivotZ) {
         Matrix3d orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
         Vector3d axisX = new Vector3d();
-        orientation.getRow(0, axisX);
+        orientation.getColumn(0, axisX);
         Quaterniond qx = new Quaterniond().fromAxisAngleRad(axisX, rotationToApply.x);
         position.set(new Vector3d(position.x - pivotX, position.y - pivotY, position.z - pivotZ).rotate(qx).add(pivotX, pivotY, pivotZ));
         rotation.add(rotationToApply.x, 0, 0);
 
         orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
         Vector3d axisY = new Vector3d();
-        orientation.getRow(1, axisY);
+        orientation.getColumn(1, axisY);
         Quaterniond qy = new Quaterniond().fromAxisAngleRad(axisY, rotationToApply.y);
         position.set(new Vector3d(position.x - pivotX, position.y - pivotY, position.z - pivotZ).rotate(qy).add(pivotX, pivotY, pivotZ));
         rotation.add(0, rotationToApply.y, 0);
 
         orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
         Vector3d axisZ = new Vector3d();
-        orientation.getRow(2, axisZ);
+        orientation.getColumn(2, axisZ);
         Quaterniond qz = new Quaterniond().fromAxisAngleRad(axisZ, rotationToApply.z);
         position.set(new Vector3d(position.x - pivotX, position.y - pivotY, position.z - pivotZ).rotate(qz).add(pivotX, pivotY, pivotZ));
         rotation.add(0, 0, rotationToApply.z);
@@ -48,22 +48,23 @@ public class ModMath {
     public static Matrix3d xRotation3x3(double angle) {
         return new Matrix3d(
                 1.0f, 0.0f, 0.0f,
-                0.0f, Math.cos(angle), -Math.sin(angle),
-                0.0f, Math.sin(angle), Math.cos(angle)
+                0.0f, Math.cos(angle), Math.sin(angle),
+                0.0f, -Math.sin(angle), Math.cos(angle)
         );
     }
 
     public static Matrix3d yRotation3x3(double angle) {
         return new Matrix3d(
-                Math.cos(angle), 0.0f, Math.sin(angle),
+                Math.cos(angle), 0.0f, -Math.sin(angle),
                 0.0f, 1.0f, 0.0f,
-                -Math.sin(angle), 0.0f, Math.cos(angle)
+                Math.sin(angle), 0.0f, Math.cos(angle)
         );
     }
+
     public static Matrix3d zRotation3x3(double angle) {
         return new Matrix3d(
-                Math.cos(angle), -Math.sin(angle), 0.0f,
-                Math.sin(angle), Math.cos(angle), 0.0f,
+                Math.cos(angle), Math.sin(angle), 0.0f,
+                -Math.sin(angle), Math.cos(angle), 0.0f,
                 0.0f, 0.0f, 1.0f
         );
     }
@@ -74,6 +75,6 @@ public class ModMath {
         if(b < 0){
             b += a;
         }
-        return (float) (b - Math.PI);
+        return b - Math.PI;
     }
 }

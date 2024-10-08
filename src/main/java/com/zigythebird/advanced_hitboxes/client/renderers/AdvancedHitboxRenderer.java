@@ -2,17 +2,21 @@ package com.zigythebird.advanced_hitboxes.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 
 public class AdvancedHitboxRenderer {
+    public static final Vec3 axisX = new Vec3(1, 0, 0);
+    public static final Vec3 axisY = new Vec3(0, 1, 0);
+    public static final Vec3 axisZ = new Vec3(0, 0, 1);
+
     public static void renderAdvancedHitboxes(VertexConsumer buffer, Entity entity, double camX, double camY, double camZ, float red, float green, float blue, float alpha) {
         if (entity instanceof AdvancedHitboxEntity || entity instanceof Player) {
             PoseStack poseStack = new PoseStack();
@@ -21,7 +25,7 @@ public class AdvancedHitboxRenderer {
                     poseStack.pushPose();
                     OBB obb = (OBB) hitbox;
                     poseStack.translate(obb.center.x - camX, obb.center.y - camY, obb.center.z - camZ);
-                    renderOBB(new OBB(obb.name, Vec3.ZERO, obb.size, new Vector3d(obb.rotation)), poseStack, buffer, red, green, blue, alpha);
+                    renderOBB(new OBB(obb.name, Vec3.ZERO, obb.size, obb.rotation), poseStack, buffer, red, green, blue, alpha);
                     poseStack.popPose();
                 }
             }
@@ -31,15 +35,25 @@ public class AdvancedHitboxRenderer {
     public static void renderOBB(OBB obb, PoseStack poseStack, VertexConsumer consumer, float red, float green, float blue, float alpha) {
         Vector3d rotation = obb.rotation;
 
-        poseStack.mulPose(new Quaternionf().rotationXYZ((float)rotation.x(), (float)rotation.y(), (float)rotation.z()));
+        poseStack.mulPose(Axis.ZP.rotation((float) rotation.z));
+        poseStack.mulPose(Axis.XP.rotation((float) rotation.x));
+        poseStack.mulPose(Axis.YP.rotation((float) rotation.y));
 
         Matrix3f normalisedPoseState = poseStack.last().normal();
         Matrix4f poseState = new Matrix4f(poseStack.last().pose());
 
-        obb.calculateOrientation();
-        obb.updateVertex();
-
-        Vec3[] obbVertices = obb.vertices;
+        Vec3 scaledAxisX = axisX.scale(obb.extent.x);
+        Vec3 scaledAxisY = axisY.scale(obb.extent.y);
+        Vec3 scaledAxisZ = axisZ.scale(obb.extent.z);
+        Vec3 vertex1 = obb.center.subtract(scaledAxisZ).subtract(scaledAxisX).subtract(scaledAxisY); //bottom left back
+        Vec3 vertex2 = obb.center.subtract(scaledAxisZ).add(scaledAxisX).subtract(scaledAxisY); //bottom right back
+        Vec3 vertex3 = obb.center.subtract(scaledAxisZ).add(scaledAxisX).add(scaledAxisY); //top right back
+        Vec3 vertex4 = obb.center.subtract(scaledAxisZ).subtract(scaledAxisX).add(scaledAxisY); //top left back
+        Vec3 vertex5 = obb.center.add(scaledAxisZ).subtract(scaledAxisX).subtract(scaledAxisY); //bottom left front
+        Vec3 vertex6 = obb.center.add(scaledAxisZ).add(scaledAxisX).subtract(scaledAxisY); //bottom right front
+        Vec3 vertex7 = obb.center.add(scaledAxisZ).add(scaledAxisX).add(scaledAxisY); //top right front
+        Vec3 vertex8 = obb.center.add(scaledAxisZ).subtract(scaledAxisX).add(scaledAxisY); //top left front
+        Vec3[] obbVertices = new Vec3[]{vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex7, vertex8};
 
         for (int i = 0; i < 12; i++) {
             Vec3[] vertices;

@@ -5,11 +5,12 @@ import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
-import com.zigythebird.advanced_hitboxes.misc.EntityInterface;
+import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
+import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityInterface;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 
@@ -52,8 +53,8 @@ public class HitboxUtils {
             position.add(bone.getPositionVector());
             ModMath.rotateAroundPivot(rotation, boneRotation, position, bone.getPivotX() / 16, bone.getPivotY() / 16, bone.getPivotZ() / 16);
             applyParentBoneTransforms(bone, rotation, position);
-            rotation = new Vector3d(ModMath.clampToRadian(rotation.x), ModMath.clampToRadian(rotation.y), ModMath.clampToRadian(rotation.z));
-            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(position.x, position.y, position.z), 0, ((EntityInterface)entity).advanced_Hitboxes$commonYBodyRot());
+            rotation = rotation.set(ModMath.clampToRadian(rotation.x), ModMath.clampToRadian(rotation.y), ModMath.clampToRadian(rotation.z));
+            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(position.x, position.y, position.z), 0, entity instanceof LivingEntity ? ((LivingEntityInterface)entity).advanced_Hitboxes$commonYBodyRot() : 0);
             if (hitbox == null) {
                 hitboxes.add(new OBB(bone.getName(), entity.position().add(finalPosition), ModMath.vector3dToVec3(size.div(16)), rotation));
             }

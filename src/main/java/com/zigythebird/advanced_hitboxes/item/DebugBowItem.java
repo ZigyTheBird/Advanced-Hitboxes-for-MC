@@ -3,6 +3,7 @@ package com.zigythebird.advanced_hitboxes.item;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.mixin.accessors.LevelAccessor;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
+import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -45,6 +46,7 @@ public class DebugBowItem extends Item {
             if (entity2 == player)
                 continue;
             if (entity2 instanceof AdvancedHitboxEntity || entity2 instanceof Player) {
+                HitboxUtils.updateOrMakeHitboxesForEntity((AdvancedHitboxEntity) entity2);
                 for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity2).getHitboxes()) {
                     double e;
                     Optional<Vec3> optional = hitbox.Linetest(startVec, endVec);

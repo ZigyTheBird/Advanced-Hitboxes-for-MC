@@ -3,6 +3,7 @@ package com.zigythebird.advanced_hitboxes.mixin.common;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedEntityHitResult;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
+import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -28,6 +29,7 @@ public abstract class ProjectileUtilMixin {
         String name = null;
         for (Entity entity2 : level.getEntities(projectile, boundingBox, filter)) {
             if (entity2 instanceof AdvancedHitboxEntity || entity2 instanceof Player) {
+                HitboxUtils.updateOrMakeHitboxesForEntity((AdvancedHitboxEntity) entity2);
                 for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity2).getHitboxes()) {
                     double e;
                     Optional<Vec3> optional = hitbox.Linetest(startVec, endVec);

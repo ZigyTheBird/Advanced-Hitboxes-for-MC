@@ -5,17 +5,20 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3d;
+import org.joml.Vector2d;
 import org.joml.Vector3d;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class OBB extends AdvancedHitbox {
-
     public Vec3 center;
     public Vector3d rotation;
     public Vec3 size;
 
     public Vec3 extent;
+    public Matrix3d orientation;
     public Vec3 axisX;
     public Vec3 axisY;
     public Vec3 axisZ;
@@ -31,7 +34,6 @@ public class OBB extends AdvancedHitbox {
     public Vec3 vertex7;
     public Vec3 vertex8;
     public Vec3[] vertices;
-    public Matrix3d orientation;
 
     public OBB(String name, Vec3 center, Vec3 size, Vector3d rotation) {
         super(name);
@@ -78,21 +80,6 @@ public class OBB extends AdvancedHitbox {
         return new OBB(this);
     }
 
-    public OBB offsetAlongAxisX(double offset) {
-        this.center = this.center.add(this.axisX.scale(offset));
-        return this;
-    }
-
-    public OBB offsetAlongAxisY(double offset) {
-        this.center = this.center.add(this.axisY.scale(offset));
-        return this;
-    }
-
-    public OBB offsetAlongAxisZ(double offset) {
-        this.center = this.center.add(this.axisZ.scale(offset));
-        return this;
-    }
-
     public OBB offset(Vec3 offset) {
         this.center = this.center.add(offset);
         return this;
@@ -114,18 +101,18 @@ public class OBB extends AdvancedHitbox {
         Vector3d axisXTemp = new Vector3d();
         Vector3d axisYTemp = new Vector3d();
         Vector3d axisZTemp = new Vector3d();
-        orientation.getRow(0, axisXTemp);
-        orientation.getRow(1, axisYTemp);
-        orientation.getRow(2, axisZTemp);
+        orientation.getColumn(0, axisXTemp);
+        orientation.getColumn(1, axisYTemp);
+        orientation.getColumn(2, axisZTemp);
         axisX = ModMath.vector3dToVec3(axisXTemp);
         axisY = ModMath.vector3dToVec3(axisYTemp);
         axisZ = ModMath.vector3dToVec3(axisZTemp);
     }
 
     public OBB updateVertex() {
-        this.scaledAxisX = this.axisX.scale(this.extent.x);
-        this.scaledAxisY = this.axisY.scale(this.extent.y);
-        this.scaledAxisZ = this.axisZ.scale(this.extent.z);
+        this.scaledAxisX = axisX.scale(this.extent.x);
+        this.scaledAxisY = axisY.scale(this.extent.y);
+        this.scaledAxisZ = axisZ.scale(this.extent.z);
         this.vertex1 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY); //bottom left back
         this.vertex2 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY); //bottom right back
         this.vertex3 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY); //top right back
@@ -139,10 +126,29 @@ public class OBB extends AdvancedHitbox {
     }
 
     public boolean contains(Vec3 point) {
-        Vec3 distancef = point.subtract(this.center);
-        Vector3d distance = new Vector3d(distancef.x, distancef.y, distancef.z);
-        distance.mulTranspose(this.orientation);
-        return Math.abs(distance.x()) < this.extent.x && Math.abs(distance.y()) < this.extent.y && Math.abs(distance.z()) < this.extent.z;
+        Vec3 dir = point.subtract(this.center);
+
+        for (int i = 0; i < 3; ++i) {
+		    Vector3d axis = new Vector3d();
+            orientation.getColumn(i, axis);
+
+            double distance = dir.dot(ModMath.vector3dToVec3(axis));
+
+            double size = extent.x;
+            switch (i) {
+                case 1 -> size = extent.y;
+                case 2 -> size = extent.z;
+            }
+
+            if (distance > size) {
+                return false;
+            }
+            if (distance < -size) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public RaycastResult raycast(Vec3 origin, Vec3 direction) {
@@ -205,7 +211,7 @@ public class OBB extends AdvancedHitbox {
     }
 
     public boolean intersects(AABB boundingBox) {
-        OBB otherOBB = (new OBB(null, boundingBox)).updateVertex();
+        OBB otherOBB = (new OBB(null, boundingBox));
         return Intersects(this, otherOBB);
     }
 
@@ -214,60 +220,51 @@ public class OBB extends AdvancedHitbox {
     }
 
     public static boolean Intersects(OBB a, OBB b) {
-        if (Separated(a.vertices, b.vertices, a.scaledAxisX)) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisY)) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisZ)) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, b.scaledAxisX)) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, b.scaledAxisY)) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, b.scaledAxisZ)) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisX.cross(b.scaledAxisX))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisX.cross(b.scaledAxisY))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisX.cross(b.scaledAxisZ))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisY.cross(b.scaledAxisX))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisY.cross(b.scaledAxisY))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisY.cross(b.scaledAxisZ))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisZ.cross(b.scaledAxisX))) {
-            return false;
-        } else if (Separated(a.vertices, b.vertices, a.scaledAxisZ.cross(b.scaledAxisY))) {
-            return false;
-        } else {
-            return !Separated(a.vertices, b.vertices, a.scaledAxisZ.cross(b.scaledAxisZ));
+        List<Vector3d> test = new ArrayList<>();
+
+        Vector3d vec0 = new Vector3d();
+        a.orientation.getColumn(0, vec0);
+        test.add(vec0);
+
+        for (int i = 0; i < 3; ++i) { // Fill out rest of axis
+            test.set(6 + i * 3, test.get(i).cross(test.get(0)));
+            test.set(6 + i * 3 + 1, test.get(i).cross(test.get(1)));
+            test.set(6 + i * 3 + 2, test.get(i).cross(test.get(2)));
         }
+
+        for (int i = 0; i < 15; ++i) {
+            if (!OverlapOnAxis(a, b, test.get(i))) {
+                return false; // Seperating axis found
+            }
+        }
+
+        return true; // Seperating axis not found
     }
 
-    private static boolean Separated(Vec3[] vertsA, Vec3[] vertsB, Vec3 axis) {
-        if (axis.equals(Vec3.ZERO)) {
-            return false;
-        } else {
-            double aMin = Double.POSITIVE_INFINITY;
-            double aMax = Double.NEGATIVE_INFINITY;
-            double bMin = Double.POSITIVE_INFINITY;
-            double bMax = Double.NEGATIVE_INFINITY;
+    public static boolean OverlapOnAxis(OBB obb1, OBB obb2, Vector3d axis) {
+        Vec3 axis2 = ModMath.vector3dToVec3(axis);
+        Vector2d a = obb1.GetInterval(axis2);
+        Vector2d b = obb2.GetInterval(axis2);
+        return b.x <= a.y && a.x <= b.y;
+    }
 
-            for (int i = 0; i < 8; ++i) {
-                double aDist = vertsA[i].dot(axis);
-                aMin = aDist < aMin ? aDist : aMin;
-                aMax = aDist > aMax ? aDist : aMax;
-                double bDist = vertsB[i].dot(axis);
-                bMin = bDist < bMin ? bDist : bMin;
-                bMax = bDist > bMax ? bDist : bMax;
-            }
+    /**
+     * In the result vector:
+     * x = min
+     * y = max
+     */
+    public Vector2d GetInterval(Vec3 axis) {
+        this.updateVertex();
 
-            double longSpan = Math.max(aMax, bMax) - Math.min(aMin, bMin);
-            double sumSpan = aMax - aMin + bMax - bMin;
-            return longSpan >= sumSpan;
+        Vector2d result = new Vector2d(0, 0);
+        result.x = result.y = axis.dot(vertices[0]);
+
+        for (int i = 1; i < 8; ++i) {
+            double projection = axis.dot(vertices[1]);
+            result.x = Math.min(projection, result.x);
+            result.y = Math.max(projection, result.y);
         }
+
+        return result;
     }
 }

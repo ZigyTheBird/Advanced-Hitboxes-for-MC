@@ -7,7 +7,7 @@ import com.zigythebird.advanced_hitboxes.geckolib.animation.PlayState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
-import com.zigythebird.advanced_hitboxes.misc.EntityInterface;
+import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import net.minecraft.world.entity.Entity;
 

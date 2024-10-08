@@ -2,7 +2,7 @@ package com.zigythebird.advanced_hitboxes.mixin.common;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.misc.EntityInterface;
+import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.world.entity.Entity;
@@ -36,21 +36,8 @@ public class EntityMixin implements EntityInterface {
     @Unique
     private final List<AdvancedHitbox> advanced_hitboxes$hitboxes = new ArrayList<>();
 
-    @Unique
-    private float advanced_Hitboxes$commonYBodyRot = 0;
-
     @Override
     public List<AdvancedHitbox> advanced_Hitboxes$getHitboxes() {
         return advanced_hitboxes$hitboxes;
-    }
-
-    @Override
-    public float advanced_Hitboxes$commonYBodyRot() {
-        return advanced_Hitboxes$commonYBodyRot;
-    }
-
-    @Override
-    public void advanced_Hitboxes$setCommonYBodyRot(float rot) {
-        advanced_Hitboxes$commonYBodyRot = rot;
     }
 }

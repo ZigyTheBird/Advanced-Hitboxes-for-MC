@@ -8,6 +8,7 @@
   "mixins": [
     "accessors.LevelAccessor",
     "common.EntityMixin",
+    "common.LivingEntityMixin",
     "common.PlayerMixin",
     "common.ProjectileUtilMixin"
   ],

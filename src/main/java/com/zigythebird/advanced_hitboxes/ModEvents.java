@@ -6,9 +6,10 @@ import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
-import com.zigythebird.advanced_hitboxes.misc.EntityInterface;
+import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
+import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityInterface;
 import com.zigythebird.advanced_hitboxes.registry.ModEntities;
-import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
+import com.zigythebird.advanced_hitboxes.utils.ClientUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -36,23 +37,23 @@ public class ModEvents {
 
                 LivingEntity livingEntity = animatable instanceof LivingEntity entity ? entity : null;
                 boolean shouldSit = animatable.isPassenger() && (animatable.getVehicle() != null);
-                float lerpBodyRot = livingEntity == null ? 0 : ((EntityInterface)livingEntity).advanced_Hitboxes$commonYBodyRot();
+                float lerpBodyRot = livingEntity == null ? 0 : ((LivingEntityInterface)livingEntity).advanced_Hitboxes$commonYBodyRot();
                 float lerpHeadRot = livingEntity == null ? 0 : livingEntity.yHeadRot;
                 float netHeadYaw = lerpHeadRot - lerpBodyRot;
 
                 float limbSwingAmount = 0;
                 float limbSwing = 0;
 
-                if (!shouldSit && animatable.isAlive() && livingEntity != null) {
-                    limbSwingAmount = livingEntity.walkAnimation.speed();
-                    limbSwing = livingEntity.walkAnimation.position();
-
-                    if (livingEntity.isBaby())
-                        limbSwing *= 3f;
-
-                    if (limbSwingAmount > 1f)
-                        limbSwingAmount = 1f;
-                }
+//                if (!shouldSit && animatable.isAlive() && livingEntity != null) {
+//                    limbSwingAmount = livingEntity.walkAnimation.speed();
+//                    limbSwing = livingEntity.walkAnimation.position();
+//
+//                    if (livingEntity.isBaby())
+//                        limbSwing *= 3f;
+//
+//                    if (limbSwingAmount > 1f)
+//                        limbSwingAmount = 1f;
+//                }
 
                 float headPitch = animatable.getXRot();
                 float motionThreshold = 0.015f;
@@ -68,7 +69,9 @@ public class ModEvents {
                 currentModel.addAdditionalStateData(((T)animatable), instanceId, animationState::setData);
                 currentModel.handleAnimations(((T)animatable), instanceId, animationState, 1);
 
-                HitboxUtils.updateOrMakeHitboxesForEntity(((T)animatable));
+                if (animatable.level().isClientSide) {
+                    ClientUtils.updateHitboxIfRendering((T)animatable);
+                }
             }
         }
     }
