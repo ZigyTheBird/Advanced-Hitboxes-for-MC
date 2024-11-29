@@ -24,14 +24,14 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.Keyframe;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event.data.KeyFrameData;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationController;
 /**
  * The base class for {@link Keyframe} events
  * <p>
- * These will be passed to one of the controllers in {@link AnimationController} when encountered during animation
+ * These will be passed to one of the controllers in {@link HitboxAnimationController} when encountered during animation
  *
  * @see CustomInstructionKeyframeEvent
  * @see ParticleKeyframeEvent
@@ -40,10 +40,10 @@ import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationController;
 public abstract class KeyFrameEvent<T extends AdvancedHitboxEntity, E extends KeyFrameData> {
 	private final T animatable;
 	private final double animationTick;
-	private final AnimationController<T> controller;
+	private final HitboxAnimationController<T> controller;
 	private final E eventKeyFrame;
 
-	public KeyFrameEvent(T animatable, double animationTick, AnimationController<T> controller, E eventKeyFrame) {
+	public KeyFrameEvent(T animatable, double animationTick, HitboxAnimationController<T> controller, E eventKeyFrame) {
 		this.animatable = animatable;
 		this.animationTick = animationTick;
 		this.controller = controller;
@@ -66,9 +66,9 @@ public abstract class KeyFrameEvent<T extends AdvancedHitboxEntity, E extends Ke
 	}
 
 	/**
-	 * Gets the {@link AnimationController} responsible for the currently playing animation
+	 * Gets the {@link HitboxAnimationController} responsible for the currently playing animation
 	 */
-	public AnimationController<T> getController() {
+	public HitboxAnimationController<T> getController() {
 		return controller;
 	}
 

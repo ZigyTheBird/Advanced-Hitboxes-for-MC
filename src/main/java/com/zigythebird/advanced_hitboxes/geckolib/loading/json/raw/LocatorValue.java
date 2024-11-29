@@ -26,8 +26,8 @@ package com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw;
 
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonParseException;
-import org.jetbrains.annotations.Nullable;
 import com.zigythebird.advanced_hitboxes.geckolib.util.JsonUtil;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Container class for locator value information, only used in deserialization at startup

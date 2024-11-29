@@ -2,6 +2,7 @@ package com.zigythebird.advanced_hitboxes.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zigythebird.advanced_hitboxes.client.renderers.AdvancedHitboxRenderer;
+import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -21,8 +22,9 @@ public class LevelRendererMixin {
 
     @Inject(method = "renderEntity", at = @At("TAIL"))
     private void inject(Entity entity, double camX, double camY, double camZ, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, CallbackInfo ci) {
+        HitboxUtils.tick(entity);
         if (this.entityRenderDispatcher.shouldRenderHitBoxes() && !entity.isInvisible() && !Minecraft.getInstance().showOnlyReducedInfo()) {
-            AdvancedHitboxRenderer.renderAdvancedHitboxes(bufferSource.getBuffer(RenderType.lines()), entity, camX, camY, camZ, partialTick, 1.0F, 1.0F, 1.0F);
+            AdvancedHitboxRenderer.renderAdvancedHitboxes(bufferSource.getBuffer(RenderType.lines()), entity, camX, camY, camZ);
         }
     }
 }

@@ -24,7 +24,7 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
@@ -42,9 +42,9 @@ import java.util.Map;
  * Generally speaking, a single working-instance of an {@link AdvancedHitboxEntity Animatable}
  * will have a single instance of {@code AnimatableManager} associated with it
  */
-public class AnimatableManager<T extends AdvancedHitboxEntity> {
+public class HitboxAnimatableManager<T extends AdvancedHitboxEntity> {
 	private final Map<String, BoneSnapshot> boneSnapshotCollection = new Object2ObjectOpenHashMap<>();
-	private final Map<String, AnimationController<T>> animationControllers;
+	private final Map<String, HitboxAnimationController<T>> animationControllers;
 	private Map<DataTicket<?>, Object> extraData;
 
 	private double lastUpdateTime;
@@ -52,33 +52,33 @@ public class AnimatableManager<T extends AdvancedHitboxEntity> {
 	private double firstTickTime = -1;
 
 	/**
-	 * Instantiates a new AnimatableManager for the given animatable, calling {@link AdvancedHitboxEntity#registerControllers} to define its controllers
+	 * Instantiates a new AnimatableManager for the given animatable, calling {@link AdvancedHitboxEntity#advanced_hitboxes$registerControllers} to define its controllers
 	 */
-	public AnimatableManager(AdvancedHitboxEntity animatable) {
+	public HitboxAnimatableManager(AdvancedHitboxEntity animatable) {
 		ControllerRegistrar registrar = new ControllerRegistrar(new ObjectArrayList<>(2));
 
-		animatable.registerControllers(registrar);
+		animatable.advanced_hitboxes$registerControllers(registrar);
 
 		this.animationControllers = registrar.build();
 	}
 
 	/**
-	 * Add an {@link AnimationController} to this animatable's manager
+	 * Add an {@link HitboxAnimationController} to this animatable's manager
 	 * <p>
-	 * Generally speaking you probably should have added it during {@link AdvancedHitboxEntity#registerControllers}
+	 * Generally speaking you probably should have added it during {@link AdvancedHitboxEntity#advanced_hitboxes$registerControllers}
 	 */
-	public void addController(AnimationController controller) {
+	public void addController(HitboxAnimationController controller) {
 		getAnimationControllers().put(controller.getName(), controller);
 	}
 
 	/**
-	 * Removes an {@link AnimationController} from this manager by the given name, if present.
+	 * Removes an {@link HitboxAnimationController} from this manager by the given name, if present.
 	 */
 	public void removeController(String name) {
 		getAnimationControllers().remove(name);
 	}
 
-	public Map<String, AnimationController<T>> getAnimationControllers() {
+	public Map<String, HitboxAnimationController<T>> getAnimationControllers() {
 		return this.animationControllers;
 	}
 
@@ -139,12 +139,12 @@ public class AnimatableManager<T extends AdvancedHitboxEntity> {
 	 * <p>
 	 * This pseudo-overloaded method checks each controller in turn until one of them accepts the trigger
 	 * <p>
-	 * This can be sped up by specifying which controller you intend to receive the trigger in {@link AnimatableManager#tryTriggerAnimation(String, String)}
+	 * This can be sped up by specifying which controller you intend to receive the trigger in {@link HitboxAnimatableManager#tryTriggerAnimation(String, String)}
 	 *
-	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link AnimationController#triggerableAnim AnimationController.triggerableAnim}
+	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link HitboxAnimationController#triggerableAnim AnimationController.triggerableAnim}
 	 */
 	public void tryTriggerAnimation(String animName) {
-		for (AnimationController<?> controller : getAnimationControllers().values()) {
+		for (HitboxAnimationController<?> controller : getAnimationControllers().values()) {
 			if (controller.tryTriggerAnimation(animName))
 				return;
 		}
@@ -154,10 +154,10 @@ public class AnimatableManager<T extends AdvancedHitboxEntity> {
 	 * Attempt to trigger an animation from a given controller name and registered triggerable animation name
 	 *
 	 * @param controllerName The name of the controller name the animation belongs to
-	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link AnimationController#triggerableAnim AnimationController.triggerableAnim}
+	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link HitboxAnimationController#triggerableAnim AnimationController.triggerableAnim}
 	 */
 	public void tryTriggerAnimation(String controllerName, String animName) {
-		AnimationController<?> controller = getAnimationControllers().get(controllerName);
+		HitboxAnimationController<?> controller = getAnimationControllers().get(controllerName);
 
 		if (controller != null)
 			controller.tryTriggerAnimation(animName);
@@ -167,27 +167,27 @@ public class AnimatableManager<T extends AdvancedHitboxEntity> {
 	 * Helper class for the AnimatableManager to cleanly register controllers in one shot at instantiation for efficiency
 	 */
 	//@ reviewer conversion to record
-	public record ControllerRegistrar(List<AnimationController<? extends AdvancedHitboxEntity>> controllers) {
+	public record ControllerRegistrar(List<HitboxAnimationController<? extends AdvancedHitboxEntity>> controllers) {
 
 		/**
-		 * Add multiple {@link AnimationController}s to this registrar
+		 * Add multiple {@link HitboxAnimationController}s to this registrar
 		 */
-		public ControllerRegistrar add(AnimationController<?>... controllers) {
+		public ControllerRegistrar add(HitboxAnimationController<?>... controllers) {
 			this.controllers().addAll(Arrays.asList(controllers));
 
 			return this;
 		}
 
 		/**
-		 * Add an {@link AnimationController} to this registrar
+		 * Add an {@link HitboxAnimationController} to this registrar
 		 */
-		public ControllerRegistrar add(AnimationController<?> controller) {
+		public ControllerRegistrar add(HitboxAnimationController<?> controller) {
 			this.controllers().add(controller);
 			return this;
 		}
 
 		/**
-		 * Remove an {@link AnimationController} from this registrar by name
+		 * Remove an {@link HitboxAnimationController} from this registrar by name
 		 * <p>
 		 * This is mostly only useful if you're sub-classing an existing animatable object and want to modify the super list
 		 */
@@ -198,8 +198,8 @@ public class AnimatableManager<T extends AdvancedHitboxEntity> {
 		}
 
 		@ApiStatus.Internal
-		private <T extends AdvancedHitboxEntity> Object2ObjectArrayMap<String, AnimationController<T>> build() {
-			Object2ObjectArrayMap<String, AnimationController<?>> map = new Object2ObjectArrayMap<>(this.controllers().size());
+		private <T extends AdvancedHitboxEntity> Object2ObjectArrayMap<String, HitboxAnimationController<T>> build() {
+			Object2ObjectArrayMap<String, HitboxAnimationController<?>> map = new Object2ObjectArrayMap<>(this.controllers().size());
 
 			this.controllers().forEach(controller -> map.put(controller.getName(), controller));
 

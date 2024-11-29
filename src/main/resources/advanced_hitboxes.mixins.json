@@ -1,14 +1,24 @@
 {
   "required": true,
   "package": "com.zigythebird.advanced_hitboxes.mixin",
+  "plugin": "com.zigythebird.advanced_hitboxes.ModMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "client.LevelRendererMixin"
+    "client.LevelRendererMixin",
+    "client.PlayerAnimationsMixin_playeranimatorapiOnly"
   ],
   "mixins": [
+    "accessors.EntityAccessor",
     "accessors.LevelAccessor",
+    "accessors.MinecraftServerAccessor",
+    "common.AABBMixin",
+    "common.AnimationControllerMixin_geckoOnly",
+    "common.BlockableEventLoopMixin",
     "common.EntityMixin",
+    "common.EntityTypeMixin",
     "common.LivingEntityMixin",
+    "common.MinecraftServerMixin",
+    "common.PlayerAnimAPIMixin_playeranimatorapiOnly",
     "common.PlayerMixin",
     "common.ProjectileUtilMixin"
   ],

@@ -24,9 +24,9 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.model;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
 import net.minecraft.resources.ResourceLocation;
@@ -77,7 +77,7 @@ public class DefaultedEntityHitboxModel<T extends AdvancedHitboxEntity> extends 
 		if (!this.turnsHead)
 			return;
 
-		GeoBone head = getAnimationProcessor().getBone("head");
+		HitboxGeoBone head = getAnimationProcessor().getBone("head");
 
 		if (head != null) {
 			EntityModelData entityData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);

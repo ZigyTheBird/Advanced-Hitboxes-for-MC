@@ -3,36 +3,43 @@ package com.zigythebird.advanced_hitboxes.client.renderers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
+import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import org.joml.*;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 public class AdvancedHitboxRenderer {
     public static final Vec3 axisX = new Vec3(1, 0, 0);
     public static final Vec3 axisY = new Vec3(0, 1, 0);
     public static final Vec3 axisZ = new Vec3(0, 0, 1);
 
-    public static void renderAdvancedHitboxes(VertexConsumer buffer, Entity entity, double camX, double camY, double camZ, float red, float green, float blue, float alpha) {
+    public static void renderAdvancedHitboxes(VertexConsumer buffer, Entity entity, double camX, double camY, double camZ) {
         if (entity instanceof AdvancedHitboxEntity || entity instanceof Player) {
+            if (!((AdvancedHitboxEntity)entity).useAdvancedHitboxesForCollision()) {
+                HitboxUtils.tickAndUpdateHitboxesForEntity((AdvancedHitboxEntity) entity);
+            }
             PoseStack poseStack = new PoseStack();
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {
                 if (hitbox instanceof OBB) {
                     poseStack.pushPose();
                     OBB obb = (OBB) hitbox;
                     poseStack.translate(obb.center.x - camX, obb.center.y - camY, obb.center.z - camZ);
-                    renderOBB(new OBB(obb.name, Vec3.ZERO, obb.size, obb.rotation), poseStack, buffer, red, green, blue, alpha);
+                    renderOBB(new OBB(obb.getName(), Vec3.ZERO, obb.size, obb.rotation), poseStack, buffer);
                     poseStack.popPose();
                 }
             }
         }
     }
 
-    public static void renderOBB(OBB obb, PoseStack poseStack, VertexConsumer consumer, float red, float green, float blue, float alpha) {
+    public static void renderOBB(OBB obb, PoseStack poseStack, VertexConsumer consumer) {
         Vector3d rotation = obb.rotation;
 
         poseStack.mulPose(Axis.ZP.rotation((float) rotation.z));
@@ -42,6 +49,7 @@ public class AdvancedHitboxRenderer {
         Matrix3f normalisedPoseState = poseStack.last().normal();
         Matrix4f poseState = new Matrix4f(poseStack.last().pose());
 
+        //Todo: Remove this and use the update vertex method.
         Vec3 scaledAxisX = axisX.scale(obb.extent.x);
         Vec3 scaledAxisY = axisY.scale(obb.extent.y);
         Vec3 scaledAxisZ = axisZ.scale(obb.extent.z);
@@ -112,7 +120,7 @@ public class AdvancedHitboxRenderer {
 
             for (Vec3 vertex : vertices) {
                 Vector3f normal = normalisedPoseState.transform(normal1);
-                consumer.addVertex(poseState, (float) vertex.x, (float) vertex.y, (float) vertex.z).setColor(red, green, blue, alpha).setNormal(normal.x, normal.y, normal.z);
+                consumer.addVertex(poseState, (float) vertex.x, (float) vertex.y, (float) vertex.z).setColor(1.0F, 0.0F, 0.0f, 1.0f).setNormal(normal.x, normal.y, normal.z);
             }
         }
     }

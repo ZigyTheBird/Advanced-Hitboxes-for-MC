@@ -41,6 +41,7 @@ import com.zigythebird.advanced_hitboxes.geckolib.util.JsonUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.lang.reflect.Type;
@@ -52,6 +53,8 @@ import java.util.Map;
  * Acts as the deserialization interface for {@code BakedAnimations}
  */
 public  class BakedAnimationsAdapter implements JsonDeserializer<BakedAnimations> {
+    public static final ObjectArrayList NO_EASING_ARGS = new ObjectArrayList<>();
+
     @Override
     public BakedAnimations deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws RuntimeException {
         JsonObject obj = json.getAsJsonObject();
@@ -60,12 +63,10 @@ public  class BakedAnimationsAdapter implements JsonDeserializer<BakedAnimations
         for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
             try {
                 animations.put(entry.getKey(), bakeAnimation(entry.getKey(), entry.getValue().getAsJsonObject(), context));
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 if (ex instanceof CompoundException compoundEx) {
                     AdvancedHitboxesMod.LOGGER.error(compoundEx.withMessage("Unable to parse animation: " + entry.getKey()).getLocalizedMessage());
-                }
-                else {
+                } else {
                     AdvancedHitboxesMod.LOGGER.error("Unable to parse animation: " + entry.getKey());
                 }
 
@@ -209,7 +210,45 @@ public  class BakedAnimationsAdapter implements JsonDeserializer<BakedAnimations
         return new KeyframeStack<>(xFrames, yFrames, zFrames);
     }
 
-    private static double calculateAnimationLength(BoneAnimation[] boneAnimations) {
+    public static KeyframeStack<Keyframe<MathValue>> buildKeyframeStackFromPlayerAnim(List<Pair<Integer, Vec3>> entries) throws CompoundException {
+        if (entries.isEmpty())
+            return new KeyframeStack<>();
+
+        List<Keyframe<MathValue>> xFrames = new ObjectArrayList<>();
+        List<Keyframe<MathValue>> yFrames = new ObjectArrayList<>();
+        List<Keyframe<MathValue>> zFrames = new ObjectArrayList<>();
+
+        MathValue xPrev = null;
+        MathValue yPrev = null;
+        MathValue zPrev = null;
+        Pair<Integer, Vec3> prevEntry = null;
+
+        for (Pair<Integer, Vec3> entry : entries) {
+            Integer key = entry.getFirst();
+            Vec3 keyFrameVector = entry.getSecond();
+
+            double prevTime = prevEntry != null ? prevEntry.getFirst() : 0;
+            double curTime = key;
+            double timeDelta = curTime - prevTime;
+
+            MathValue xValue = new Constant(keyFrameVector.x);
+            MathValue yValue = new Constant(keyFrameVector.y);
+            MathValue zValue = new Constant(keyFrameVector.z);
+
+            xFrames.add(new Keyframe<>(timeDelta * 20, prevEntry == null ? xValue : xPrev, xValue, EasingType.LINEAR, NO_EASING_ARGS));
+            yFrames.add(new Keyframe<>(timeDelta * 20, prevEntry == null ? yValue : yPrev, yValue, EasingType.LINEAR, NO_EASING_ARGS));
+            zFrames.add(new Keyframe<>(timeDelta * 20, prevEntry == null ? zValue : zPrev, zValue, EasingType.LINEAR, NO_EASING_ARGS));
+
+            xPrev = xValue;
+            yPrev = yValue;
+            zPrev = zValue;
+            prevEntry = entry;
+        }
+
+        return new KeyframeStack<>(xFrames, yFrames, zFrames);
+    }
+
+    public static double calculateAnimationLength(BoneAnimation[] boneAnimations) {
         double length = 0;
 
         for (BoneAnimation animation : boneAnimations) {

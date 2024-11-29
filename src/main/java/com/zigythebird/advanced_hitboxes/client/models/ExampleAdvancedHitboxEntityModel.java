@@ -23,9 +23,9 @@ public class ExampleAdvancedHitboxEntityModel extends EntityModel<ExampleAdvance
 
         PartDefinition bone = partdefinition.addOrReplaceChild("bone", CubeListBuilder.create(), PartPose.offset(0.0F, 24.0F, 0.0F));
 
-        PartDefinition bone_hitbox = bone.addOrReplaceChild("bone_hitbox", CubeListBuilder.create().texOffs(0, 0).addBox(-1.0F, -6.0F, -1.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+        PartDefinition bone_hitbox = bone.addOrReplaceChild("bone_hitbox", CubeListBuilder.create().texOffs(0, 0).addBox(-20.0F, -22.0F, -8.0F, 40.0F, 22.0F, 16.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-        return LayerDefinition.create(meshdefinition, 16, 16);
+        return LayerDefinition.create(meshdefinition, 128, 128);
     }
 
     @Override

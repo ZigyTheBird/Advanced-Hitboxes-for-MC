@@ -24,8 +24,8 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.limit;
 
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.MathFunction;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
+import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.MathFunction;
 
 /**
  * {@link MathFunction} value supplier

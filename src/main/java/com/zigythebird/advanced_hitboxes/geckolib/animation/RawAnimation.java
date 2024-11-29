@@ -31,7 +31,7 @@ import java.util.Objects;
 
 /**
  * A builder class for a raw/unbaked animation. These are constructed to pass to the
- * {@link AnimationController} to build into full-fledged animations for usage
+ * {@link HitboxAnimationController} to build into full-fledged animations for usage
  * <p>
  * Animations added to this builder are added <u>in order of insertion</u> - the animations will play in the order that you define them
  * <p>
@@ -40,11 +40,11 @@ import java.util.Objects;
  * Example usage:
  * <pre>{@code RawAnimation.begin().thenPlay("action.open_box").thenLoop("state.stay_open")}</pre>
  */
-public final class RawAnimation {
+public class RawAnimation {
     private final List<Stage> animationList = new ObjectArrayList<>();
 
     // Private constructor to force usage of factory for logical operations
-    private RawAnimation() {}
+    RawAnimation() {}
 
     /**
      * Start a new RawAnimation instance. This is the start point for creating an animation chain

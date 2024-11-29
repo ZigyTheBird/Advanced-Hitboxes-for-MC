@@ -24,26 +24,26 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
 
 import java.util.Map;
 
 /**
- * Context-aware wrapper for {@link AnimatableManager}
+ * Context-aware wrapper for {@link HitboxAnimatableManager}
  * <p>
  * This can be used for things like perspective-dependent animation handling and other similar functionality
  */
-public abstract class ContextAwareAnimatableManager<T extends AdvancedHitboxEntity, C> extends AnimatableManager<T> {
-	private final Map<C, AnimatableManager<T>> managers;
+public abstract class ContextAwareHitboxAnimatableManager<T extends AdvancedHitboxEntity, C> extends HitboxAnimatableManager<T> {
+	private final Map<C, HitboxAnimatableManager<T>> managers;
 
 	/**
-	 * Instantiates a new AnimatableManager for the given animatable, calling {@link AdvancedHitboxEntity#registerControllers} to define its controllers
+	 * Instantiates a new AnimatableManager for the given animatable, calling {@link AdvancedHitboxEntity#advanced_hitboxes$registerControllers} to define its controllers
 	 *
 	 * @param animatable
 	 */
-	public ContextAwareAnimatableManager(AdvancedHitboxEntity animatable) {
+	public ContextAwareHitboxAnimatableManager(AdvancedHitboxEntity animatable) {
 		super(animatable);
 
 		this.managers = buildContextOptions(animatable);
@@ -56,7 +56,7 @@ public abstract class ContextAwareAnimatableManager<T extends AdvancedHitboxEnti
 	 *
 	 * @param animatable
 	 */
-	protected abstract Map<C, AnimatableManager<T>> buildContextOptions(AdvancedHitboxEntity animatable);
+	protected abstract Map<C, HitboxAnimatableManager<T>> buildContextOptions(AdvancedHitboxEntity animatable);
 
 	/**
 	 * Get the current context for the manager, to determine which sub-manager to retrieve
@@ -66,27 +66,27 @@ public abstract class ContextAwareAnimatableManager<T extends AdvancedHitboxEnti
 	/**
 	 * Get the AnimatableManager for the given context
 	 */
-	public AnimatableManager<T> getManagerForContext(C context) {
+	public HitboxAnimatableManager<T> getManagerForContext(C context) {
 		return this.managers.get(context);
 	}
 
 	/**
-	 * Add an {@link AnimationController} to this animatable's manager
+	 * Add an {@link HitboxAnimationController} to this animatable's manager
 	 * <p>
-	 * Generally speaking you probably should have added it during {@link AdvancedHitboxEntity#registerControllers}
+	 * Generally speaking you probably should have added it during {@link AdvancedHitboxEntity#advanced_hitboxes$registerControllers}
 	 */
-	public void addController(AnimationController controller) {
+	public void addController(HitboxAnimationController controller) {
 		getManagerForContext(getCurrentContext()).addController(controller);
 	}
 
 	/**
-	 * Removes an {@link AnimationController} from this manager by the given name, if present.
+	 * Removes an {@link HitboxAnimationController} from this manager by the given name, if present.
 	 */
 	public void removeController(String name) {
 		getManagerForContext(getCurrentContext()).removeController(name);
 	}
 
-	public Map<String, AnimationController<T>> getAnimationControllers() {
+	public Map<String, HitboxAnimationController<T>> getAnimationControllers() {
 		return getManagerForContext(getCurrentContext()).getAnimationControllers();
 	}
 
@@ -127,12 +127,12 @@ public abstract class ContextAwareAnimatableManager<T extends AdvancedHitboxEnti
 	 * <p>
 	 * This pseudo-overloaded method checks each controller in turn until one of them accepts the trigger
 	 * <p>
-	 * This can be sped up by specifying which controller you intend to receive the trigger in {@link AnimatableManager#tryTriggerAnimation(String, String)}
+	 * This can be sped up by specifying which controller you intend to receive the trigger in {@link HitboxAnimatableManager#tryTriggerAnimation(String, String)}
 	 *
-	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link AnimationController#triggerableAnim AnimationController.triggerableAnim}
+	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link HitboxAnimationController#triggerableAnim AnimationController.triggerableAnim}
 	 */
 	public void tryTriggerAnimation(String animName) {
-		for (AnimatableManager<T> manager : this.managers.values()) {
+		for (HitboxAnimatableManager<T> manager : this.managers.values()) {
 			manager.tryTriggerAnimation(animName);
 		}
 	}
@@ -141,10 +141,10 @@ public abstract class ContextAwareAnimatableManager<T extends AdvancedHitboxEnti
 	 * Attempt to trigger an animation from a given controller name and registered triggerable animation name
 	 *
 	 * @param controllerName The name of the controller name the animation belongs to
-	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link AnimationController#triggerableAnim AnimationController.triggerableAnim}
+	 * @param animName The name of animation to trigger. This needs to have been registered with the controller via {@link HitboxAnimationController#triggerableAnim AnimationController.triggerableAnim}
 	 */
 	public void tryTriggerAnimation(String controllerName, String animName) {
-		for (AnimatableManager<T> manager : this.managers.values()) {
+		for (HitboxAnimatableManager<T> manager : this.managers.values()) {
 			manager.tryTriggerAnimation(controllerName, animName);
 		}
 	}

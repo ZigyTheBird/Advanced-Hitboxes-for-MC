@@ -26,14 +26,14 @@ package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimation;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A compiled animation instance for use by the {@link AnimationController}
+ * A compiled animation instance for use by the {@link HitboxAnimationController}
  * <p>
  * Modifications or extensions of a compiled Animation are not supported, and therefore an instance of <code>Animation</code> is considered final and immutable
  */
@@ -55,7 +55,7 @@ public record Animation(String name, double length, LoopType loopType, BoneAnima
         LoopType DEFAULT = (animatable, controller, currentAnimation) -> currentAnimation.loopType().shouldPlayAgain(animatable, controller, currentAnimation);
         LoopType PLAY_ONCE = register("play_once", register("false", (animatable, controller, currentAnimation) -> false));
         LoopType HOLD_ON_LAST_FRAME = register("hold_on_last_frame", (animatable, controller, currentAnimation) -> {
-            controller.animationState = AnimationController.State.PAUSED;
+            controller.animationState = HitboxAnimationController.State.PAUSED;
 
             return true;
         });
@@ -65,11 +65,11 @@ public record Animation(String name, double length, LoopType loopType, BoneAnima
          * Override in a custom instance to dynamically decide whether an animation should repeat or stop
          *
          * @param animatable The animating object relevant to this method call
-         * @param controller The {@link AnimationController} playing the current animation
+         * @param controller The {@link HitboxAnimationController} playing the current animation
          * @param currentAnimation The current animation that just played
          * @return Whether the animation should play again, or stop
          */
-        boolean shouldPlayAgain(AdvancedHitboxEntity animatable, AnimationController<? extends AdvancedHitboxEntity> controller, Animation currentAnimation);
+        boolean shouldPlayAgain(AdvancedHitboxEntity animatable, HitboxAnimationController<? extends AdvancedHitboxEntity> controller, Animation currentAnimation);
 
         /**
          * Retrieve a LoopType instance based on a {@link JsonElement}

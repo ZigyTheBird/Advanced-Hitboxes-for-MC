@@ -24,8 +24,8 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.constant;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationController;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.PlayState;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.RawAnimation;
@@ -78,7 +78,7 @@ public final class DefaultAnimations {
 	public static final RawAnimation ATTACK_POWERUP = RawAnimation.begin().thenPlay("attack.powerup");
 
 	/**
-	 * A basic predicate-based {@link AnimationController} implementation
+	 * A basic predicate-based {@link HitboxAnimationController} implementation
 	 * <p>
 	 * Provide an {@code option A} {@link RawAnimation animation} and an {@code option B} animation, and use the predicate to determine which to play
 	 * <p>
@@ -87,8 +87,8 @@ public final class DefaultAnimations {
 	 * false -> Animation Option B
 	 * null  -> Stop Controller</pre>
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> basicPredicateController(T animatable, RawAnimation optionA, RawAnimation optionB, BiFunction<T, AnimationState<T>, Boolean> predicate) {
-		return new AnimationController<T>(animatable, "Generic", 10, state -> {
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> basicPredicateController(T animatable, RawAnimation optionA, RawAnimation optionB, BiFunction<T, AnimationState<T>, Boolean> predicate) {
+		return new HitboxAnimationController<T>(animatable, "Generic", 10, state -> {
 			Boolean result = predicate.apply(animatable, state);
 
 			if (result == null)
@@ -103,8 +103,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Continuously plays the living animation
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericLivingController(T animatable) {
-		return new AnimationController<>(animatable, "Living", 10, state -> state.setAndContinue(LIVING));
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericLivingController(T animatable) {
+		return new HitboxAnimationController<>(animatable, "Living", 10, state -> state.setAndContinue(LIVING));
 	}
 
 	/**
@@ -112,8 +112,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Plays the death animation when dying
 	 */
-	public static <T extends LivingEntity & AdvancedHitboxEntity> AnimationController<T> genericDeathController(T animatable) {
-		return new AnimationController<>(animatable, "Death", 0, state -> state.getAnimatable().isDeadOrDying() ? state.setAndContinue(DIE) : PlayState.STOP);
+	public static <T extends LivingEntity & AdvancedHitboxEntity> HitboxAnimationController<T> genericDeathController(T animatable) {
+		return new HitboxAnimationController<>(animatable, "Death", 0, state -> state.getAnimatable().isDeadOrDying() ? state.setAndContinue(DIE) : PlayState.STOP);
 	}
 
 	/**
@@ -121,14 +121,14 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Continuously plays the idle animation
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericIdleController(T animatable) {
-		return new AnimationController<T>(animatable, "Idle", 10, state -> state.setAndContinue(IDLE));
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericIdleController(T animatable) {
+		return new HitboxAnimationController<T>(animatable, "Idle", 10, state -> state.setAndContinue(IDLE));
 	}
 
 	/**
 	 * Generic {@link DefaultAnimations#SPAWN spawn} controller
 	 * <p>
-	 * Plays the spawn animation as long as the current {@link AdvancedHitboxEntity#getTick tick} of the animatable is {@literal <=} the value provided in {@code ticks}
+	 * Plays the spawn animation as long as the current {@link AdvancedHitboxEntity#advanced_hitboxes$getTick tick} of the animatable is {@literal <=} the value provided in {@code ticks}
 	 * <p>
 	 * For the {@code objectSupplier}, provide the relevant object for the animatable being animated
 	 * </p>
@@ -138,12 +138,12 @@ public final class DefaultAnimations {
 	 * </ul>
 	 *
 	 * @param animatable The animatable the animation is for
-	 * @param objectSupplier The supplier of the associated object for the {@link AdvancedHitboxEntity#getTick} call
+	 * @param objectSupplier The supplier of the associated object for the {@link AdvancedHitboxEntity#advanced_hitboxes$getTick} call
 	 * @param ticks The number of ticks the animation should run for. After this value is surpassed, the animation will no longer play
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> getSpawnController(T animatable, Function<AnimationState<T>, Object> objectSupplier, int ticks) {
-		return new AnimationController<T>(animatable, "Spawn", 0, state -> {
-			if (animatable.getTick(objectSupplier.apply(state)) <= ticks)
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> getSpawnController(T animatable, Function<AnimationState<T>, Object> objectSupplier, int ticks) {
+		return new HitboxAnimationController<T>(animatable, "Spawn", 0, state -> {
+			if (animatable.advanced_hitboxes$getTick(objectSupplier.apply(state)) <= ticks)
 				return state.setAndContinue(DefaultAnimations.SPAWN);
 
 			return PlayState.STOP;
@@ -155,8 +155,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Will play the walk animation if the animatable is considered moving, or stop if not.
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericWalkController(T animatable) {
-		return new AnimationController<T>(animatable, "Walk", 0, state -> {
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericWalkController(T animatable) {
+		return new HitboxAnimationController<T>(animatable, "Walk", 0, state -> {
 			if (state.isMoving())
 				return state.setAndContinue(WALK);
 
@@ -173,10 +173,10 @@ public final class DefaultAnimations {
 	 *
 	 * @param animatable The entity that should swing
 	 * @param attackAnimation The attack animation to play (E.G. swipe, strike, stomp, swing, etc)
-	 * @return A new {@link AnimationController} instance to use
+	 * @return A new {@link HitboxAnimationController} instance to use
 	 */
-	public static <T extends LivingEntity & AdvancedHitboxEntity> AnimationController<T> genericAttackAnimation(T animatable, RawAnimation attackAnimation) {
-		return new AnimationController<>(animatable, "Attack", 5, state -> {
+	public static <T extends LivingEntity & AdvancedHitboxEntity> HitboxAnimationController<T> genericAttackAnimation(T animatable, RawAnimation attackAnimation) {
+		return new HitboxAnimationController<>(animatable, "Attack", 5, state -> {
 			if (animatable.swinging)
 				return state.setAndContinue(attackAnimation);
 
@@ -191,8 +191,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Will play the walk animation if the animatable is considered moving, or idle if not
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericWalkIdleController(T animatable) {
-		return new AnimationController<T>(animatable, "Walk/Idle", 0, state -> state.setAndContinue(state.isMoving() ? WALK : IDLE));
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericWalkIdleController(T animatable) {
+		return new HitboxAnimationController<T>(animatable, "Walk/Idle", 0, state -> state.setAndContinue(state.isMoving() ? WALK : IDLE));
 	}
 
 	/**
@@ -200,8 +200,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Will play the swim animation if the animatable is considered moving, or stop if not.
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericSwimController(T entity) {
-		return new AnimationController<T>(entity, "Swim", 0, state -> {
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericSwimController(T entity) {
+		return new HitboxAnimationController<T>(entity, "Swim", 0, state -> {
 			if (state.isMoving())
 				return state.setAndContinue(SWIM);
 
@@ -214,8 +214,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Will play the swim animation if the animatable is considered moving, or idle if not
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericSwimIdleController(T animatable) {
-		return new AnimationController<T>(animatable, "Swim/Idle", 0, state -> state.setAndContinue(state.isMoving() ? SWIM : IDLE));
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericSwimIdleController(T animatable) {
+		return new HitboxAnimationController<T>(animatable, "Swim/Idle", 0, state -> state.setAndContinue(state.isMoving() ? SWIM : IDLE));
 	}
 
 	/**
@@ -223,8 +223,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Will play the fly animation if the animatable is considered moving, or stop if not.
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericFlyController(T animatable) {
-		return new AnimationController<T>(animatable, "Fly", 0, state -> state.setAndContinue(FLY));
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericFlyController(T animatable) {
+		return new HitboxAnimationController<T>(animatable, "Fly", 0, state -> state.setAndContinue(FLY));
 	}
 
 	/**
@@ -232,8 +232,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * Will play the walk animation if the animatable is considered moving, or idle if not
 	 */
-	public static <T extends AdvancedHitboxEntity> AnimationController<T> genericFlyIdleController(T animatable) {
-		return new AnimationController<T>(animatable, "Fly/Idle", 0, state -> state.setAndContinue(state.isMoving() ? FLY : IDLE));
+	public static <T extends AdvancedHitboxEntity> HitboxAnimationController<T> genericFlyIdleController(T animatable) {
+		return new HitboxAnimationController<T>(animatable, "Fly/Idle", 0, state -> state.setAndContinue(state.isMoving() ? FLY : IDLE));
 	}
 
 	/**
@@ -241,8 +241,8 @@ public final class DefaultAnimations {
 	 * <p>
 	 * If the entity is considered moving, will either walk or run depending on the {@link Entity#isSprinting()} method, otherwise it will idle
 	 */
-	public static <T extends Entity & AdvancedHitboxEntity> AnimationController<T> genericWalkRunIdleController(T entity) {
-		return new AnimationController<T>(entity, "Walk/Run/Idle", 0, state -> {
+	public static <T extends Entity & AdvancedHitboxEntity> HitboxAnimationController<T> genericWalkRunIdleController(T entity) {
+		return new HitboxAnimationController<T>(entity, "Walk/Run/Idle", 0, state -> {
 			if (state.isMoving()) {
 				return state.setAndContinue(entity.isSprinting() ? RUN : WALK);
 			}

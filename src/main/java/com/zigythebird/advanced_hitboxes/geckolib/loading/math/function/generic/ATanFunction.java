@@ -24,9 +24,9 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.generic;
 
+import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.MathFunction;
 import net.minecraft.util.Mth;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 
 /**
  * {@link MathFunction} value supplier

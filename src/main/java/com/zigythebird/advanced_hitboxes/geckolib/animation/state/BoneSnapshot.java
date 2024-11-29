@@ -25,16 +25,16 @@
 package com.zigythebird.advanced_hitboxes.geckolib.animation.state;
 
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationProcessor;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 
 /**
- * A state monitoring class for a given {@link GeoBone}
+ * A state monitoring class for a given {@link HitboxGeoBone}
  * <p>
  * Transformations applied to the bone is monitored by the {@link AnimationProcessor}
  * in the course of animations, and stored here for monitoring.
  */
 public class BoneSnapshot {
-	private final GeoBone bone;
+	private final HitboxGeoBone bone;
 
 	private float scaleX;
 	private float scaleY;
@@ -56,7 +56,7 @@ public class BoneSnapshot {
 	private boolean posAnimInProgress = true;
 	private boolean scaleAnimInProgress = true;
 
-	public BoneSnapshot(GeoBone bone) {
+	public BoneSnapshot(HitboxGeoBone bone) {
 		this.rotX = bone.getRotX();
 		this.rotY = bone.getRotY();
 		this.rotZ = bone.getRotZ();
@@ -90,7 +90,7 @@ public class BoneSnapshot {
 		return newSnapshot;
 	}
 
-	public GeoBone getBone() {
+	public HitboxGeoBone getBone() {
 		return this.bone;
 	}
 

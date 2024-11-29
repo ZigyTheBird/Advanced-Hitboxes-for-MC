@@ -25,7 +25,7 @@
 package com.zigythebird.advanced_hitboxes.geckolib.loading.object;
 
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Bone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Cube;
@@ -54,13 +54,13 @@ public interface BakedModelFactory {
 	BakedHitboxModel constructGeoModel(GeometryTree geometryTree);
 
 	/**
-	 * Construct a {@link GeoBone} from the relevant raw input data
+	 * Construct a {@link HitboxGeoBone} from the relevant raw input data
 	 *
 	 * @param boneStructure The {@code BoneStructure} comprising the structure of the bone and its children
 	 * @param properties The loaded properties for the model
 	 * @param parent The parent bone for this bone, or null if a top-level bone
 	 */
-	GeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, @Nullable GeoBone parent);
+	HitboxGeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, @Nullable HitboxGeoBone parent);
 
 	/**
 	 * Construct a {@link GeoCube} from the relevant raw input data
@@ -69,7 +69,7 @@ public interface BakedModelFactory {
 	 * @param properties The loaded properties for the model
 	 * @param bone The bone this cube belongs to
 	 */
-	GeoCube constructCube(Cube cube, ModelProperties properties, GeoBone bone);
+	GeoCube constructCube(Cube cube, ModelProperties properties, HitboxGeoBone bone);
 
 	static BakedModelFactory getForNamespace(String namespace) {
 		return FACTORIES.getOrDefault(namespace, DEFAULT_FACTORY);
@@ -92,7 +92,7 @@ public interface BakedModelFactory {
 	final class Builtin implements BakedModelFactory {
 		@Override
 		public BakedHitboxModel constructGeoModel(GeometryTree geometryTree) {
-			List<GeoBone> bones = new ObjectArrayList<>();
+			List<HitboxGeoBone> bones = new ObjectArrayList<>();
 
 			for (BoneStructure boneStructure : geometryTree.topLevelBones().values()) {
 				bones.add(constructBone(boneStructure, geometryTree.properties(), null));
@@ -102,9 +102,9 @@ public interface BakedModelFactory {
 		}
 
 		@Override
-		public GeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, GeoBone parent) {
+		public HitboxGeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, HitboxGeoBone parent) {
 			Bone bone = boneStructure.self();
-			GeoBone newBone = new GeoBone(parent, bone.name());
+			HitboxGeoBone newBone = new HitboxGeoBone(parent, bone.name());
 			Vec3 rotation = RenderUtil.arrayToVec(bone.rotation());
 			Vec3 pivot = RenderUtil.arrayToVec(bone.pivot());
 
@@ -123,7 +123,7 @@ public interface BakedModelFactory {
 		}
 
 		@Override
-		public GeoCube constructCube(Cube cube, ModelProperties properties, GeoBone bone) {
+		public GeoCube constructCube(Cube cube, ModelProperties properties, HitboxGeoBone bone) {
 			Vec3 size = RenderUtil.arrayToVec(cube.size());
 			Vec3 origin = RenderUtil.arrayToVec(cube.origin());
 			Vec3 rotation = RenderUtil.arrayToVec(cube.rotation());

@@ -1,13 +1,21 @@
 package com.zigythebird.advanced_hitboxes.entity;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.model.DefaultedEntityHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.util.HitboxModelUtil;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+
+import java.util.Objects;
 
 public class ExampleAdvancedHitboxEntity extends Mob implements AdvancedHitboxEntity {
 
@@ -25,7 +33,26 @@ public class ExampleAdvancedHitboxEntity extends Mob implements AdvancedHitboxEn
     private final AdvancedHitboxInstanceCache hitbox_cache = HitboxModelUtil.createInstanceCache(this);
 
     @Override
-    public AdvancedHitboxInstanceCache getAnimatableInstanceCache() {
+    public AdvancedHitboxInstanceCache advanced_hitboxes$getAnimatableInstanceCache() {
         return hitbox_cache;
+    }
+
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        this.yRotO = this.getYRot();
+        this.setYRot(Mth.wrapDegrees(this.getYRot() + 10));
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public boolean useAdvancedHitboxesForCollision() {
+        return true;
+    }
+
+    @Override
+    public void applyTransformationsToBone(HitboxGeoBone bone, boolean animPlaying) {
+        if (Objects.equals(bone.getName(), "bone")) {
+            bone.setRotY(Mth.DEG_TO_RAD * Mth.wrapDegrees(this.getYRot()));
+        }
     }
 }

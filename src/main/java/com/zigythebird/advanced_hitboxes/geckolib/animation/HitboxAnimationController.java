@@ -24,11 +24,11 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.*;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event.data.KeyFrameData;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.Constant;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
@@ -46,7 +46,7 @@ import java.util.function.Function;
  * Each controller can only play a single animation at a time - for example you may have one controller to animate walking,
  * one to control attacks, one to control size, etc.
  */
-public class AnimationController<T extends AdvancedHitboxEntity> {
+public class HitboxAnimationController<T extends AdvancedHitboxEntity> {
     protected final T animatable;
     protected final String name;
     protected final AnimationStateHandler<T> stateHandler;
@@ -83,7 +83,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param animatable The object that will be animated by this controller
      * @param animationHandler The {@link AnimationStateHandler} animation state handler responsible for deciding which animations to play
      */
-    public AnimationController(T animatable, AnimationStateHandler<T> animationHandler) {
+    public HitboxAnimationController(T animatable, AnimationStateHandler<T> animationHandler) {
         this(animatable, "base_controller", 0, animationHandler);
     }
 
@@ -96,7 +96,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param name The name of the controller - should represent what animations it handles
      * @param animationHandler The {@link AnimationStateHandler} animation state handler responsible for deciding which animations to play
      */
-    public AnimationController(T animatable, String name, AnimationStateHandler<T> animationHandler) {
+    public HitboxAnimationController(T animatable, String name, AnimationStateHandler<T> animationHandler) {
         this(animatable, name, 0, animationHandler);
     }
 
@@ -110,7 +110,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      *                              Lerping is automatically applied where possible
      * @param animationHandler The {@link AnimationStateHandler} animation state handler responsible for deciding which animations to play
      */
-    public AnimationController(T animatable, int transitionTickTime, AnimationStateHandler<T> animationHandler) {
+    public HitboxAnimationController(T animatable, int transitionTickTime, AnimationStateHandler<T> animationHandler) {
         this(animatable, "base_controller", transitionTickTime, animationHandler);
     }
 
@@ -123,7 +123,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      *                              Lerping is automatically applied where possible
      * @param animationHandler The {@link AnimationStateHandler} animation state handler responsible for deciding which animations to play
      */
-    public AnimationController(T animatable, String name, int transitionTickTime, AnimationStateHandler<T> animationHandler) {
+    public HitboxAnimationController(T animatable, String name, int transitionTickTime, AnimationStateHandler<T> animationHandler) {
         this.animatable = animatable;
         this.name = name;
         this.transitionLength = transitionTickTime;
@@ -138,7 +138,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param speedModFunction The function to apply to this controller to handle animation speed
      * @return this
      */
-    public AnimationController<T> setAnimationSpeedHandler(Function<T, Double> speedModFunction) {
+    public HitboxAnimationController<T> setAnimationSpeedHandler(Function<T, Double> speedModFunction) {
         this.animationSpeedModifier = speedModFunction;
 
         return this;
@@ -152,7 +152,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param speed The speed modifier to apply to this controller to handle animation speed.
      * @return this
      */
-    public AnimationController<T> setAnimationSpeed(double speed) {
+    public HitboxAnimationController<T> setAnimationSpeed(double speed) {
         return setAnimationSpeedHandler(animatable -> speed);
     }
 
@@ -164,7 +164,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param easingTypeFunction The new {@code EasingType} to use
      * @return this
      */
-    public AnimationController<T> setOverrideEasingType(EasingType easingTypeFunction) {
+    public HitboxAnimationController<T> setOverrideEasingType(EasingType easingTypeFunction) {
         return setOverrideEasingTypeFunction(animatable -> easingTypeFunction);
     }
 
@@ -176,7 +176,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param easingType The new {@code EasingType} to use
      * @return this
      */
-    public AnimationController<T> setOverrideEasingTypeFunction(Function<T, EasingType> easingType) {
+    public HitboxAnimationController<T> setOverrideEasingTypeFunction(Function<T, EasingType> easingType) {
         this.overrideEasingTypeFunction = easingType;
 
         return this;
@@ -191,20 +191,20 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      * @param animation The RawAnimation for this triggerable animation
      * @return this
      */
-    public AnimationController<T> triggerableAnim(String name, RawAnimation animation) {
+    public HitboxAnimationController<T> triggerableAnim(String name, RawAnimation animation) {
         this.triggerableAnimations.put(name, animation);
 
         return this;
     }
 
     /**
-     * Tells the AnimationController that you want to receive the {@link AnimationController.AnimationStateHandler} while a triggered animation is playing
+     * Tells the AnimationController that you want to receive the {@link HitboxAnimationController.AnimationStateHandler} while a triggered animation is playing
      * <p>
      * This has no effect if no triggered animation has been registered, or one isn't currently playing
      * <p>
      * If a triggered animation is playing, it can be checked in your AnimationStateHandler via {@link #isPlayingTriggeredAnimation()}
      */
-    public AnimationController<T> receiveTriggeredAnimations() {
+    public HitboxAnimationController<T> receiveTriggeredAnimations() {
         this.handlingTriggeredAnimations = true;
 
         return this;
@@ -277,7 +277,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
     /**
      * Overrides the animation transition time for the controller
      */
-    public AnimationController<T> transitionLength(int ticks) {
+    public HitboxAnimationController<T> transitionLength(int ticks) {
         this.transitionLength = ticks;
 
         return this;
@@ -329,6 +329,12 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
             return;
         }
 
+        if (animationState != State.STOPPED && rawAnimation instanceof PlayerRawAnimation && currentRawAnimation instanceof PlayerRawAnimation) {
+            if (((PlayerRawAnimation)rawAnimation).getPriority() < ((PlayerRawAnimation)currentRawAnimation).getPriority()) {
+                return;
+            }
+        }
+
         if (this.needsAnimationReload || !rawAnimation.equals(this.currentRawAnimation)) {
             if (this.lastModel != null) {
                 Queue<AnimationProcessor.QueuedAnimation> animations = this.lastModel.getAnimationProcessor().buildAnimationQueue(this.animatable, rawAnimation);
@@ -372,6 +378,20 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
         return true;
     }
 
+    public void tryTriggerAnimation(RawAnimation anim) {
+        if (anim == null)
+            return;
+
+        stop();
+        this.triggeredAnimation = anim;
+
+        if (this.animationState == State.STOPPED) {
+            this.animationState = State.TRANSITIONING;
+            this.shouldResetTick = true;
+            this.justStartedTransition = true;
+        }
+    }
+
     /**
      * Handle a given AnimationState, alongside the current triggered animation if applicable
      */
@@ -398,12 +418,12 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      *
      * @param model					The model currently being processed
      * @param state                 The animation test state
-     * @param bones                 The registered {@link GeoBone bones} for this model
+     * @param bones                 The registered {@link HitboxGeoBone bones} for this model
      * @param snapshots             The {@link BoneSnapshot} map
      * @param seekTime              The current tick + partial tick
      * @param crashWhenCantFindBone Whether to hard-fail when a bone can't be found, or to continue with the remaining bones
      */
-    public void process(HitboxModel<T> model, AnimationState<T> state, Map<String, GeoBone> bones, Map<String, BoneSnapshot> snapshots, final double seekTime, boolean crashWhenCantFindBone) {
+    public void process(HitboxModel<T> model, AnimationState<T> state, Map<String, HitboxGeoBone> bones, Map<String, BoneSnapshot> snapshots, final double seekTime, boolean crashWhenCantFindBone) {
         double adjustedTick = adjustTick(seekTime);
         this.lastModel = model;
 
@@ -463,7 +483,7 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
                 for (BoneAnimation boneAnimation : this.currentAnimation.animation().boneAnimations()) {
                     BoneAnimationQueue boneAnimationQueue = this.boneAnimationQueues.get(boneAnimation.boneName());
                     BoneSnapshot boneSnapshot = this.boneSnapshots.get(boneAnimation.boneName());
-                    GeoBone bone = bones.get(boneAnimation.boneName());
+                    HitboxGeoBone bone = bones.get(boneAnimation.boneName());
 
                     if (boneSnapshot == null)
                         continue;
@@ -589,10 +609,10 @@ public class AnimationController<T extends AdvancedHitboxEntity> {
      *
      * @param modelRendererList The bone list from the {@link AnimationProcessor}
      */
-    private void createInitialQueues(Collection<GeoBone> modelRendererList) {
+    private void createInitialQueues(Collection<HitboxGeoBone> modelRendererList) {
         this.boneAnimationQueues.clear();
 
-        for (GeoBone modelRenderer : modelRendererList) {
+        for (HitboxGeoBone modelRenderer : modelRendererList) {
             this.boneAnimationQueues.put(modelRenderer.getName(), new BoneAnimationQueue(modelRenderer));
         }
     }

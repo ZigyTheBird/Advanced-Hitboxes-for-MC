@@ -35,7 +35,7 @@
 					]
 				},
 				{
-					"name": "left_leg_hitbox",
+					"name": "leftLeg_hitbox",
 					"parent": "body",
 					"pivot": [1.9, 11.4, 0],
 					"cubes": [
@@ -54,10 +54,9 @@
 					]
 				},
 				{
-					"name": "left_arm_hitbox",
+					"name": "leftArm_hitbox",
 					"parent": "body",
 					"pivot": [5, 20.9, 0],
-					"rotation": [0, 0, -140],
 					"cubes": [
 						{
 							"origin": [4, 11.4, -2],
@@ -74,7 +73,7 @@
 					]
 				},
 				{
-					"name": "right_leg_hitbox",
+					"name": "rightLeg_hitbox",
 					"parent": "body",
 					"pivot": [-1.9, 11.4, 0],
 					"cubes": [
@@ -93,7 +92,7 @@
 					]
 				},
 				{
-					"name": "right_arm_hitbox",
+					"name": "rightArm_hitbox",
 					"parent": "body",
 					"pivot": [-5, 20.9, 0],
 					"cubes": [

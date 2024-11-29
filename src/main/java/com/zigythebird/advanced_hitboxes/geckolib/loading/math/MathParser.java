@@ -29,12 +29,6 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.MathFunction;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.generic.AbsFunction;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.Util;
-import org.apache.logging.log4j.Level;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.generic.*;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.limit.ClampFunction;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.limit.MaxFunction;
@@ -49,6 +43,10 @@ import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.random.R
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.round.*;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.*;
 import com.zigythebird.advanced_hitboxes.geckolib.util.CompoundException;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.Util;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;

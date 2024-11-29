@@ -27,9 +27,9 @@ package com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.zigythebird.advanced_hitboxes.geckolib.util.JsonUtil;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
-import com.zigythebird.advanced_hitboxes.geckolib.util.JsonUtil;
 
 /**
  * Container class for poly mesh information, only used in deserialization at startup

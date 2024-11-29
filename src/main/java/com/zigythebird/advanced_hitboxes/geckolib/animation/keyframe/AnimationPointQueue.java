@@ -24,14 +24,14 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe;
 
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationController;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 
 import java.io.Serial;
 import java.util.LinkedList;
 
 /**
  * An {@link AnimationPoint} queue holds a queue of {@code AnimationPoints} which are used in
- * the {@link AnimationController} to lerp between values
+ * the {@link HitboxAnimationController} to lerp between values
  */
 public final class AnimationPointQueue extends LinkedList<AnimationPoint> {
 	@Serial

@@ -4,7 +4,9 @@ import com.zigythebird.advanced_hitboxes.utils.ModMath;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3d;
+import org.joml.Quaterniond;
 import org.joml.Vector2d;
 import org.joml.Vector3d;
 
@@ -12,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class OBB extends AdvancedHitbox {
+public class OBB implements AdvancedHitbox {
+    private final String name;
+
     public Vec3 center;
     public Vector3d rotation;
     public Vec3 size;
@@ -36,7 +40,7 @@ public class OBB extends AdvancedHitbox {
     public Vec3[] vertices;
 
     public OBB(String name, Vec3 center, Vec3 size, Vector3d rotation) {
-        super(name);
+        this.name = name;
         this.center = center;
         this.size = size;
         this.extent = new Vec3(size.x/2, size.y/2, size.z/2);
@@ -69,7 +73,9 @@ public class OBB extends AdvancedHitbox {
     }
 
     public OBB inflate(double x, double y, double z) {
-        return new OBB(this.name, this.center, this.size.x + (x * 2), this.size.y + (y * 2), this.size.z + (z * 2), this.rotation.x, this.rotation.y, this.rotation.z);
+        this.size = new Vec3(this.size.x + (x * 2), this.size.y + (y * 2), this.size.z + (z * 2));
+        this.extent = this.size.scale(0.5);
+        return this;
     }
 
     public OBB inflate(double value) {
@@ -78,6 +84,12 @@ public class OBB extends AdvancedHitbox {
 
     public OBB copy() {
         return new OBB(this);
+    }
+
+    public AABB toAABB() {
+        Vec3 min = getMinVertex();
+        Vec3 max = getMaxVertex();
+        return new AABB(min.x, min.y, min.z, max.x, max.y, max.z);
     }
 
     public OBB offset(Vec3 offset) {
@@ -97,7 +109,8 @@ public class OBB extends AdvancedHitbox {
     }
 
     public void calculateOrientation() {
-        orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
+        orientation = new Matrix3d();
+        new Quaterniond().rotationXYZ(rotation.x, rotation.y, rotation.z).get(orientation);
         Vector3d axisXTemp = new Vector3d();
         Vector3d axisYTemp = new Vector3d();
         Vector3d axisZTemp = new Vector3d();
@@ -107,6 +120,13 @@ public class OBB extends AdvancedHitbox {
         axisX = ModMath.vector3dToVec3(axisXTemp);
         axisY = ModMath.vector3dToVec3(axisYTemp);
         axisZ = ModMath.vector3dToVec3(axisZTemp);
+    }
+
+    public OBB updateScaledAxis() {
+        this.scaledAxisX = axisX.scale(this.extent.x);
+        this.scaledAxisY = axisY.scale(this.extent.y);
+        this.scaledAxisZ = axisZ.scale(this.extent.z);
+        return this;
     }
 
     public OBB updateVertex() {
@@ -123,6 +143,23 @@ public class OBB extends AdvancedHitbox {
         this.vertex8 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY); //top left front
         this.vertices = new Vec3[]{this.vertex1, this.vertex2, this.vertex3, this.vertex4, this.vertex5, this.vertex6, this.vertex7, this.vertex8};
         return this;
+    }
+
+    public Vec3 getMaxVertex() {
+        return this.center.add(Math.abs(this.scaledAxisZ.x) + Math.abs(this.scaledAxisX.x) + Math.abs(this.scaledAxisY.x),
+                Math.abs(this.scaledAxisZ.y) + Math.abs(this.scaledAxisX.y) + Math.abs(this.scaledAxisY.y),
+                Math.abs(this.scaledAxisZ.z) + Math.abs(this.scaledAxisX.z) + Math.abs(this.scaledAxisY.z));
+    }
+
+    public Vec3 getMinVertex() {
+        return this.center.subtract(Math.abs(this.scaledAxisZ.x) + Math.abs(this.scaledAxisX.x) + Math.abs(this.scaledAxisY.x),
+                        Math.abs(this.scaledAxisZ.y) + Math.abs(this.scaledAxisX.y) + Math.abs(this.scaledAxisY.y),
+                        Math.abs(this.scaledAxisZ.z) + Math.abs(this.scaledAxisX.z) + Math.abs(this.scaledAxisY.z));
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return name;
     }
 
     public boolean contains(Vec3 point) {
@@ -200,7 +237,7 @@ public class OBB extends AdvancedHitbox {
         return new RaycastResult(Optional.of(direction.scale(tmin).add(origin)), tmin);
     }
 
-    public Optional<Vec3> Linetest(Vec3 start, Vec3 end) {
+    public Optional<Vec3> linetest(Vec3 start, Vec3 end) {
         Vec3 endMinusStart = end.subtract(start);
         Vec3 startMinusEnd = start.subtract(end);
         if (endMinusStart.dot(endMinusStart) < 0.0000001f) {
@@ -211,7 +248,7 @@ public class OBB extends AdvancedHitbox {
     }
 
     public boolean intersects(AABB boundingBox) {
-        OBB otherOBB = (new OBB(null, boundingBox));
+        OBB otherOBB = new OBB(null, boundingBox);
         return Intersects(this, otherOBB);
     }
 
@@ -223,13 +260,28 @@ public class OBB extends AdvancedHitbox {
         List<Vector3d> test = new ArrayList<>();
 
         Vector3d vec0 = new Vector3d();
+        Vector3d vec1 = new Vector3d();
+        Vector3d vec2 = new Vector3d();
+        Vector3d vec10 = new Vector3d();
+        Vector3d vec11 = new Vector3d();
+        Vector3d vec12 = new Vector3d();
         a.orientation.getColumn(0, vec0);
+        a.orientation.getColumn(1, vec1);
+        a.orientation.getColumn(2, vec2);
+        b.orientation.getColumn(0, vec10);
+        b.orientation.getColumn(1, vec11);
+        b.orientation.getColumn(2, vec12);
         test.add(vec0);
+        test.add(vec1);
+        test.add(vec2);
+        test.add(vec10);
+        test.add(vec11);
+        test.add(vec12);
 
         for (int i = 0; i < 3; ++i) { // Fill out rest of axis
-            test.set(6 + i * 3, test.get(i).cross(test.get(0)));
-            test.set(6 + i * 3 + 1, test.get(i).cross(test.get(1)));
-            test.set(6 + i * 3 + 2, test.get(i).cross(test.get(2)));
+            test.add(6 + i * 3, test.get(i).cross(test.get(0)));
+            test.add(6 + i * 3 + 1, test.get(i).cross(test.get(1)));
+            test.add(6 + i * 3 + 2, test.get(i).cross(test.get(2)));
         }
 
         for (int i = 0; i < 15; ++i) {
@@ -249,7 +301,7 @@ public class OBB extends AdvancedHitbox {
     }
 
     /**
-     * In the result vector:
+     * In the resulting vector:
      * x = min
      * y = max
      */
@@ -260,7 +312,7 @@ public class OBB extends AdvancedHitbox {
         result.x = result.y = axis.dot(vertices[0]);
 
         for (int i = 1; i < 8; ++i) {
-            double projection = axis.dot(vertices[1]);
+            double projection = axis.dot(vertices[i]);
             result.x = Math.min(projection, result.x);
             result.y = Math.max(projection, result.y);
         }

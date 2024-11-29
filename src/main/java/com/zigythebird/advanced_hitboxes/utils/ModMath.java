@@ -8,21 +8,22 @@ import org.joml.Vector3d;
 
 public class ModMath {
     public static void rotateAroundPivot(Vector3d rotation, Vector3d rotationToApply, Vector3d position, float pivotX, float pivotY, float pivotZ) {
-        Matrix3d orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
+        Matrix3d orientation = new Matrix3d();
+        new Quaterniond().rotationXYZ(rotation.x, rotation.y, rotation.z).get(orientation);
         Vector3d axisX = new Vector3d();
         orientation.getColumn(0, axisX);
         Quaterniond qx = new Quaterniond().fromAxisAngleRad(axisX, rotationToApply.x);
         position.set(new Vector3d(position.x - pivotX, position.y - pivotY, position.z - pivotZ).rotate(qx).add(pivotX, pivotY, pivotZ));
         rotation.add(rotationToApply.x, 0, 0);
 
-        orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
+        new Quaterniond().rotationXYZ(rotation.x, rotation.y, rotation.z).get(orientation);
         Vector3d axisY = new Vector3d();
         orientation.getColumn(1, axisY);
         Quaterniond qy = new Quaterniond().fromAxisAngleRad(axisY, rotationToApply.y);
         position.set(new Vector3d(position.x - pivotX, position.y - pivotY, position.z - pivotZ).rotate(qy).add(pivotX, pivotY, pivotZ));
         rotation.add(0, rotationToApply.y, 0);
 
-        orientation = ModMath.rotation3x3(rotation.x, rotation.y, rotation.z);
+        new Quaterniond().rotationXYZ(rotation.x, rotation.y, rotation.z).get(orientation);
         Vector3d axisZ = new Vector3d();
         orientation.getColumn(2, axisZ);
         Quaterniond qz = new Quaterniond().fromAxisAngleRad(axisZ, rotationToApply.z);
@@ -39,34 +40,6 @@ public class ModMath {
         result = result.add(Vec3.directionFromRotation(Mth.wrapDegrees(xRot - 90), yRot).scale(input.y));
         result = result.add(Vec3.directionFromRotation(xRot, Mth.wrapDegrees(yRot - 90)).scale(input.x));
         return result;
-    }
-
-    public static Matrix3d rotation3x3(double pitch, double yaw, double roll) {
-        return zRotation3x3(roll).mul(xRotation3x3(pitch)).mul(yRotation3x3(yaw));
-    }
-
-    public static Matrix3d xRotation3x3(double angle) {
-        return new Matrix3d(
-                1.0f, 0.0f, 0.0f,
-                0.0f, Math.cos(angle), Math.sin(angle),
-                0.0f, -Math.sin(angle), Math.cos(angle)
-        );
-    }
-
-    public static Matrix3d yRotation3x3(double angle) {
-        return new Matrix3d(
-                Math.cos(angle), 0.0f, -Math.sin(angle),
-                0.0f, 1.0f, 0.0f,
-                Math.sin(angle), 0.0f, Math.cos(angle)
-        );
-    }
-
-    public static Matrix3d zRotation3x3(double angle) {
-        return new Matrix3d(
-                Math.cos(angle), Math.sin(angle), 0.0f,
-                -Math.sin(angle), Math.cos(angle), 0.0f,
-                0.0f, 0.0f, 1.0f
-        );
     }
 
     public static double clampToRadian(double f){

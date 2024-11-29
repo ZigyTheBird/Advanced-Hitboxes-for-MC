@@ -25,21 +25,21 @@
 package com.zigythebird.advanced_hitboxes.geckolib.model;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimatableManager;
+import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimatableManager;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationProcessor;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.HitboxCache;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathParser;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.Variable;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedAnimations;
 import com.zigythebird.advanced_hitboxes.geckolib.util.RenderUtil;
-import com.zigythebird.advanced_hitboxes.utils.ClientUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -106,9 +106,9 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 	 * Gets a bone from this model by name
 	 *
 	 * @param name The name of the bone
-	 * @return An {@link Optional} containing the {@link GeoBone} if one matches, otherwise an empty Optional
+	 * @return An {@link Optional} containing the {@link HitboxGeoBone} if one matches, otherwise an empty Optional
 	 */
-	public Optional<GeoBone> getBone(String name) {
+	public Optional<HitboxGeoBone> getBone(String name) {
 		return Optional.ofNullable(getAnimationProcessor().getBone(name));
 	}
 
@@ -156,7 +156,7 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 	 */
 	@ApiStatus.Internal
 	public void handleAnimations(T animatable, long instanceId, AnimationState<T> animationState, float partialTick) {
-		AnimatableManager<T> animatableManager = animatable.getAnimatableInstanceCache().getManagerForId(instanceId);
+		HitboxAnimatableManager<T> animatableManager = animatable.advanced_hitboxes$getAnimatableInstanceCache().getManagerForId(instanceId);
 		Double currentTick = animationState.getData(DataTickets.TICK);
 
 		if (currentTick == null)
@@ -175,7 +175,7 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 		if (((Entity)animatable).level().isClientSide || ServerLifecycleHooks.getCurrentServer().isSingleplayer()) {
 			paused = ClientUtils.isGamePaused();
 		}
-		if (!paused || animatable.shouldPlayAnimsWhileGamePaused()) {
+		if (!paused || animatable.advanced_hitboxes$shouldPlayAnimsWhileGamePaused()) {
 			animatableManager.updatedAt(currentFrameTime);
 
 			double lastUpdateTime = animatableManager.getLastUpdateTime();
@@ -213,7 +213,7 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 	 * {@link MathParser#setVariable(String, DoubleSupplier) MathParser.setVariable}
 	 *
 	 * @param animationState The AnimationState data for the current render frame
-	 * @param animTime The internal tick counter kept by the {@link AnimatableManager manager} for this animatable
+	 * @param animTime The internal tick counter kept by the {@link HitboxAnimatableManager manager} for this animatable
 	 */
 	public void applyMolangQueries(AnimationState<T> animationState, double animTime) {}
 }

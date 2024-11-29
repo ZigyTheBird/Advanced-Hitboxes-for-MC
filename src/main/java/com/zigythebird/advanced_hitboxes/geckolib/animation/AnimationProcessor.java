@@ -25,23 +25,20 @@
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.AnimationPoint;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimationQueue;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Mth;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 public class AnimationProcessor<T extends AdvancedHitboxEntity> {
-	private final Map<String, GeoBone> bones = new Object2ObjectOpenHashMap<>();
+	private final Map<String, HitboxGeoBone> bones = new Object2ObjectOpenHashMap<>();
 	private final HitboxModel<T> model;
 
 	public boolean reloadAnimations = false;
@@ -87,19 +84,19 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	}
 
 	/**
-	 * Tick and apply transformations to the model based on the current state of the {@link AnimationController}
+	 * Tick and apply transformations to the model based on the current state of the {@link HitboxAnimationController}
 	 *
 	 * @param animatable            The animatable object relevant to the animation being played
 	 * @param model                 The model currently being processed
 	 * @param animatableManager			The AnimatableManager instance being used for this animation processor
-	 * @param animTime              The internal tick counter kept by the {@link AnimatableManager} for this animatable
+	 * @param animTime              The internal tick counter kept by the {@link HitboxAnimatableManager} for this animatable
 	 * @param state                 An {@link AnimationState} instance applied to this render frame
 	 * @param crashWhenCantFindBone Whether to crash if unable to find a required bone, or to continue with the remaining bones
 	 */
-	public void tickAnimation(T animatable, HitboxModel<T> model, AnimatableManager<T> animatableManager, double animTime, AnimationState<T> state, boolean crashWhenCantFindBone) {
+	public void tickAnimation(T animatable, HitboxModel<T> model, HitboxAnimatableManager<T> animatableManager, double animTime, AnimationState<T> state, boolean crashWhenCantFindBone) {
 		Map<String, BoneSnapshot> boneSnapshots = updateBoneSnapshots(animatableManager.getBoneSnapshotCollection());
 
-		for (AnimationController<T> controller : animatableManager.getAnimationControllers().values()) {
+		for (HitboxAnimationController<T> controller : animatableManager.getAnimationControllers().values()) {
 			if (this.reloadAnimations) {
 				controller.forceAnimationReset();
 				controller.getBoneAnimationQueues().clear();
@@ -110,8 +107,25 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 			state.withController(controller);
 			controller.process(model, state, this.bones, boneSnapshots, animTime, crashWhenCantFindBone);
 
+			if (controller.currentAnimation == null) {
+				for (HitboxGeoBone bone : this.bones.values()) {
+					animatable.applyTransformationsToBone(bone, false);
+				}
+			}
+			else {
+				List<HitboxGeoBone> bonesWithAnimation = new ArrayList<>();
+				for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues().values()) {
+					bonesWithAnimation.add(boneAnimation.bone());
+				}
+				for (HitboxGeoBone bone : this.bones.values()) {
+					if (!bonesWithAnimation.contains(bone)) {
+						animatable.applyTransformationsToBone(bone, true);
+					}
+				}
+			}
+
 			for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues().values()) {
-				GeoBone bone = boneAnimation.bone();
+				HitboxGeoBone bone = boneAnimation.bone();
 				BoneSnapshot snapshot = boneSnapshots.get(bone.getName());
 				BoneSnapshot initialSnapshot = bone.getInitialSnapshot();
 
@@ -156,9 +170,9 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 		}
 
 		this.reloadAnimations = false;
-		double resetTickLength = animatable.getBoneResetTime();
+		double resetTickLength = animatable.advanced_hitboxes$getBoneResetTime();
 
-		for (GeoBone bone : getRegisteredBones()) {
+		for (HitboxGeoBone bone : getRegisteredBones()) {
 			if (!bone.hasRotationChanged()) {
 				BoneSnapshot initialSnapshot = bone.getInitialSnapshot();
 				BoneSnapshot saveSnapshot = boneSnapshots.get(bone.getName());
@@ -216,21 +230,21 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	}
 
 	/**
-	 * Reset the transformation markers applied to each {@link GeoBone} ready for the next render frame
+	 * Reset the transformation markers applied to each {@link HitboxGeoBone} ready for the next render frame
 	 */
 	private void resetBoneTransformationMarkers() {
-		getRegisteredBones().forEach(GeoBone::resetStateChanges);
+		getRegisteredBones().forEach(HitboxGeoBone::resetStateChanges);
 	}
 
 	/**
-	 * Create new bone {@link BoneSnapshot} based on the bone's initial snapshot for the currently registered {@link GeoBone GeoBones},
+	 * Create new bone {@link BoneSnapshot} based on the bone's initial snapshot for the currently registered {@link HitboxGeoBone GeoBones},
 	 * filtered by the bones already present in the master snapshots map
 	 *
-	 * @param snapshots The master bone snapshots map from the related {@link AnimatableManager}
+	 * @param snapshots The master bone snapshots map from the related {@link HitboxAnimatableManager}
 	 * @return The input snapshots map, for easy assignment
 	 */
 	private Map<String, BoneSnapshot> updateBoneSnapshots(Map<String, BoneSnapshot> snapshots) {
-		for (GeoBone bone : getRegisteredBones()) {
+		for (HitboxGeoBone bone : getRegisteredBones()) {
 			if (!snapshots.containsKey(bone.getName()))
 				snapshots.put(bone.getName(), BoneSnapshot.copy(bone.getInitialSnapshot()));
 		}
@@ -244,7 +258,7 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	 * @param boneName The bone name
 	 * @return the bone
 	 */
-	public GeoBone getBone(String boneName) {
+	public HitboxGeoBone getBone(String boneName) {
 		return this.bones.get(boneName);
 	}
 
@@ -255,17 +269,17 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	 * <p>
 	 * Failure to properly register a bone will break things.
 	 */
-	public void registerGeoBone(GeoBone bone) {
+	public void registerGeoBone(HitboxGeoBone bone) {
 		bone.saveInitialSnapshot();
 		this.bones.put(bone.getName(), bone);
 
-		for (GeoBone child : bone.getChildBones()) {
+		for (HitboxGeoBone child : bone.getChildBones()) {
 			registerGeoBone(child);
 		}
 	}
 
 	/**
-	 * Clear the {@link GeoBone GeoBones} currently registered to the processor,
+	 * Clear the {@link HitboxGeoBone GeoBones} currently registered to the processor,
 	 * then prepares the processor for a new model
 	 * <p>
 	 * Should be called whenever switching models to render/animate
@@ -273,15 +287,15 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	public void setActiveModel(BakedHitboxModel model) {
 		this.bones.clear();
 
-		for (GeoBone bone : model.topLevelBones()) {
+		for (HitboxGeoBone bone : model.topLevelBones()) {
 			registerGeoBone(bone);
 		}
 	}
 
 	/**
-	 * Get an iterable collection of the {@link GeoBone GeoBones} currently registered to the processor
+	 * Get an iterable collection of the {@link HitboxGeoBone GeoBones} currently registered to the processor
 	 */
-	public Collection<GeoBone> getRegisteredBones() {
+	public Collection<HitboxGeoBone> getRegisteredBones() {
 		return this.bones.values();
 	}
 

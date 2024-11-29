@@ -24,12 +24,12 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.util;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.EasingType;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedModelFactory;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.InstancedAdvancedHitboxInstanceCache;
+import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedModelFactory;
 
 /**
  * Helper class for various GeckoLib-specific functions.
@@ -43,7 +43,7 @@ public final class HitboxModelUtil {
      * @param animatable The animatable object
      */
     public static AdvancedHitboxInstanceCache createInstanceCache(AdvancedHitboxEntity animatable) {
-        AdvancedHitboxInstanceCache cache = animatable.animatableCacheOverride();
+        AdvancedHitboxInstanceCache cache = animatable.advanced_hitboxes$animatableCacheOverride();
 
         if (cache != null)
             return cache;

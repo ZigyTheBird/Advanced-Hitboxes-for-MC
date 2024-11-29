@@ -24,11 +24,18 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.cache;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.datafixers.util.Pair;
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimation;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.KeyframeStack;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.FileLoader;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Model;
+import com.zigythebird.advanced_hitboxes.geckolib.loading.json.typeadapter.BakedAnimationsAdapter;
+import com.zigythebird.advanced_hitboxes.geckolib.loading.json.typeadapter.GeoAdapter;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedAnimations;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedModelFactory;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.object.GeometryTree;
@@ -38,12 +45,12 @@ import com.zigythebird.advanced_hitboxes.utils.CommonResourceManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -53,7 +60,10 @@ import java.util.function.Function;
  * and {@link HitboxModel Models}
  */
 public class HitboxCache {
+    public static final ResourceLocation PLAYER_ANIMATION_RESOURCE = AdvancedHitboxesMod.id("animations/entity/player_hitbox.animation.json");
+
     private static final Set<String> EXCLUDED_NAMESPACES = ObjectOpenHashSet.of("moreplayermodels", "customnpcs", "gunsrpg");
+    private static final List<ResourceLocation> loadedPlayerAnimationFiles = new ArrayList<>();
 
     private static Map<ResourceLocation, BakedAnimations> ANIMATIONS = Collections.emptyMap();
     private static Map<ResourceLocation, BakedHitboxModel> MODELS = Collections.emptyMap();
@@ -115,6 +125,69 @@ public class HitboxCache {
         }, elementConsumer);
     }
 
+    public static void loadPlayerAnim(ResourceLocation id) {
+        BakedAnimations animations = ANIMATIONS.get(PLAYER_ANIMATION_RESOURCE);
+        if (!loadedPlayerAnimationFiles.contains(id)) {
+            try {
+                InputStream resource = CommonResourceManager.getResourceOrThrow(id);
+                JsonObject json = AdvancedHitboxesMod.gson.fromJson(new InputStreamReader(resource), JsonObject.class);
+                if (json.has("animations")) {
+                    json = json.get("animations").getAsJsonObject();
+                    JsonObject modifiedJson = new JsonObject();
+                    for (Map.Entry<String, JsonElement> entry : json.asMap().entrySet()) {
+                        JsonObject modifiedBones = new JsonObject();
+                        for (Map.Entry<String, JsonElement> entry1 : entry.getValue().getAsJsonObject().get("bones").getAsJsonObject().asMap().entrySet()) {
+                            modifiedBones.add(getCorrectPlayerBoneName(entry1.getKey()), entry1.getValue());
+                        }
+                        JsonObject entryJson = entry.getValue().getAsJsonObject();
+                        entryJson.add("bones", modifiedBones);
+                        modifiedJson.add(id.getNamespace() + ":" + entry.getKey(), entryJson);
+                    }
+                    BakedAnimations anim = GeoAdapter.GEO_GSON.fromJson(modifiedJson, BakedAnimations.class);
+                    animations.animations().putAll(anim.animations());
+                }
+                else {
+                    json.addProperty("name", id.getNamespace() + ":" + json.get("name"));
+                    Animation animation = loadPlayerAnim(json);
+                    animations.animations().put(animation.name(), animation);
+                }
+            }
+            catch (Exception ignore) {}
+            loadedPlayerAnimationFiles.add(id);
+        }
+    }
+
+    public static Animation loadPlayerAnim(JsonElement json) {
+        JsonObject obj = json.getAsJsonObject();
+        List<BoneAnimation> boneAnims = new ArrayList<>();
+        for (JsonElement jsonElement : obj.get("moves").getAsJsonArray()) {
+            if (json.isJsonObject()) {
+                JsonObject move = (JsonObject) jsonElement;
+                int currentTick = move.get("tick").getAsInt();
+                for (Map.Entry<String, JsonElement> entry : move.asMap().entrySet()) {
+                    List<Pair<Integer, Vec3>> transforms = new ArrayList<>();
+                    List<Pair<Integer, Vec3>> rotations = new ArrayList<>();
+                    //Not gonna bother supporting scaling for now
+                    //List<Pair<Integer, Vec3>> scales = new ArrayList<>();
+                    JsonObject jsonObject = (JsonObject) entry.getValue();
+                    double x = jsonObject.has("x") ? jsonObject.get("x").getAsDouble() : 0;
+                    double y = jsonObject.has("y") ? jsonObject.get("y").getAsDouble() : 0;
+                    double z = jsonObject.has("z") ? jsonObject.get("z").getAsDouble() : 0;
+                    double pitch = jsonObject.has("pitch") ? jsonObject.get("pitch").getAsDouble() : 0;
+                    double yaw = jsonObject.has("yaw") ? jsonObject.get("yaw").getAsDouble() : 0;
+                    double roll = jsonObject.has("roll") ? jsonObject.get("roll").getAsDouble() : 0;
+                    transforms.add(new Pair<>(currentTick, new Vec3(x, y, z)));
+                    rotations.add(new Pair<>(currentTick, new Vec3(pitch, yaw, roll)));
+                    boneAnims.add(new BoneAnimation(getCorrectPlayerBoneName(entry.getKey()), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(rotations), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(rotations), new KeyframeStack<>()));
+                }
+            }
+        }
+        BoneAnimation[] boneAnimations = boneAnims.toArray(new BoneAnimation[]{});
+        String name = obj.get("name").getAsString();
+        return new Animation(name, BakedAnimationsAdapter.calculateAnimationLength(boneAnimations),
+                obj.get("emote").getAsJsonObject().get("isLoop").getAsBoolean() ? Animation.LoopType.LOOP : Animation.LoopType.PLAY_ONCE, boneAnimations);
+    }
+
     private static <T> CompletableFuture<Void> loadResources(String type, Function<ResourceLocation, T> loader, BiConsumer<ResourceLocation, T> map) {
         return CompletableFuture.supplyAsync(
                         () -> CommonResourceManager.listResources(type, fileName -> fileName.toString().endsWith(".json")))
@@ -134,6 +207,26 @@ public class HitboxCache {
                             map.accept(entry.getKey(), entry.getValue().join());
                     }
                 });
+    }
+
+    public static String getCorrectPlayerBoneName(String name) {
+        StringBuilder sb = new StringBuilder(name.length());
+        boolean uc = false;  // Flag to know whether to uppercase the char.
+        for (int i = 0; i < name.length(); ++i) {
+            int c = name.codePointAt(i);
+            if (c == '_') {
+                // Don't append the codepoint, but flag to uppercase the next codepoint
+                // that isn't a '_'.
+                uc = true;
+            } else {
+                if (uc) {
+                    c = Character.toUpperCase(c);
+                    uc = false;
+                }
+                sb.appendCodePoint(c);
+            }
+        }
+        return sb + "_hitbox";
     }
 
     /**

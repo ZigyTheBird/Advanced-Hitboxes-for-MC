@@ -40,11 +40,11 @@ import java.util.Objects;
  * <p>
  * This is the object that is directly modified by animations to handle movement
  */
-public class GeoBone {
-	private final GeoBone parent;
+public class HitboxGeoBone {
+	private final HitboxGeoBone parent;
 	private final String name;
 
-	private final List<GeoBone> children = new ObjectArrayList<>();
+	private final List<HitboxGeoBone> children = new ObjectArrayList<>();
 	private final List<GeoCube> cubes = new ObjectArrayList<>();
 
 	private BoneSnapshot initialSnapshot;
@@ -75,7 +75,7 @@ public class GeoBone {
 	
 	private boolean trackingMatrices;
 
-	public GeoBone(@Nullable GeoBone parent, String name) {
+	public HitboxGeoBone(@Nullable HitboxGeoBone parent, String name) {
 		this.parent = parent;
 		this.name = name;
 		this.trackingMatrices = false;
@@ -90,7 +90,7 @@ public class GeoBone {
 		return this.name;
 	}
 
-	public GeoBone getParent() {
+	public HitboxGeoBone getParent() {
 		return this.parent;
 	}
 
@@ -266,7 +266,7 @@ public class GeoBone {
 		return this.initialSnapshot;
 	}
 
-	public List<GeoBone> getChildBones() {
+	public List<HitboxGeoBone> getChildBones() {
 		return this.children;
 	}
 
@@ -354,7 +354,7 @@ public class GeoBone {
 
 	public void setModelPosition(Vector3d pos) {
 		// Doesn't work on bones with parent transforms
-		GeoBone parent = getParent();
+		HitboxGeoBone parent = getParent();
 		Matrix4f matrix = (parent == null ? new Matrix4f().identity() : new Matrix4f(parent.getModelSpaceMatrix())).invert();
 		Vector4f vec = matrix.transform(new Vector4f(-(float)pos.x / 16f, (float)pos.y / 16f, (float)pos.z / 16f, 1));
 		
@@ -382,7 +382,7 @@ public class GeoBone {
 		return new Vector3d(getScaleX(), getScaleY(), getScaleZ());
 	}
 
-	public void addRotationOffsetFromBone(GeoBone source) {
+	public void addRotationOffsetFromBone(HitboxGeoBone source) {
 		setRotX(getRotX() + source.getRotX() - source.getInitialSnapshot().getRotX());
 		setRotY(getRotY() + source.getRotY() - source.getInitialSnapshot().getRotY());
 		setRotZ(getRotZ() + source.getRotZ() - source.getInitialSnapshot().getRotZ());

@@ -56,7 +56,10 @@ public final class FileLoader {
         if (!location.getPath().endsWith(".animation.json"))
             AdvancedHitboxesMod.LOGGER.warn("Found animation file with improper file name format; animation files should end in .animation.json: '" + location + "'");
 
-        return GeoAdapter.GEO_GSON.fromJson(GsonHelper.getAsJsonObject(loadFile(location), "animations"), BakedAnimations.class);
+        JsonObject object = GsonHelper.getAsJsonObject(loadFile(location), "animations");
+        if (object.has("name"))
+            object.addProperty("name", location.getNamespace() + ":" + object.get("name"));
+        return GeoAdapter.GEO_GSON.fromJson(object, BakedAnimations.class);
     }
 
     /**

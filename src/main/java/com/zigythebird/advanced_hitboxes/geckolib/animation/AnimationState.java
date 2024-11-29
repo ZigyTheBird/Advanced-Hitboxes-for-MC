@@ -24,7 +24,7 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -45,7 +45,7 @@ public class AnimationState<T extends AdvancedHitboxEntity> {
 	private final boolean isMoving;
 	private final Map<DataTicket<?>, Object> extraData = new Object2ObjectOpenHashMap<>();
 
-	protected AnimationController<T> controller;
+	protected HitboxAnimationController<T> controller;
 	public double animationTick;
 
 	public AnimationState(T animatable, float limbSwing, float limbSwingAmount, float partialTick, boolean isMoving) {
@@ -96,16 +96,16 @@ public class AnimationState<T extends AdvancedHitboxEntity> {
 	}
 
 	/**
-	 * Gets the current {@link AnimationController} responsible for the current animation
+	 * Gets the current {@link HitboxAnimationController} responsible for the current animation
 	 */
-	public AnimationController<T> getController() {
+	public HitboxAnimationController<T> getController() {
 		return this.controller;
 	}
 
 	/**
-	 * Sets the {@code AnimationState}'s current {@link AnimationController}
+	 * Sets the {@code AnimationState}'s current {@link HitboxAnimationController}
 	 */
-	public AnimationState<T> withController(AnimationController<T> controller) {
+	public AnimationState<T> withController(HitboxAnimationController<T> controller) {
 		this.controller = controller;
 
 		return this;
@@ -162,7 +162,7 @@ public class AnimationState<T extends AdvancedHitboxEntity> {
 	}
 
 	/**
-	 * Checks whether the current {@link AnimationController}'s last animation was the one provided
+	 * Checks whether the current {@link HitboxAnimationController}'s last animation was the one provided
 	 * <p>
 	 * This allows for multi-stage animation shifting where the next animation to play may depend on the previous one
 	 *
@@ -188,7 +188,7 @@ public class AnimationState<T extends AdvancedHitboxEntity> {
 	}
 
 	/**
-	 * Helper method for {@link AnimationController#forceAnimationReset()}
+	 * Helper method for {@link HitboxAnimationController#forceAnimationReset()}
 	 * <p>
 	 * This should be used in controllers when stopping a non-looping animation, so that it is reset to the start for the next time it starts
 	 */
@@ -197,7 +197,7 @@ public class AnimationState<T extends AdvancedHitboxEntity> {
 	}
 
 	/**
-	 * Helper method for {@link AnimationController#setAnimationSpeed}
+	 * Helper method for {@link HitboxAnimationController#setAnimationSpeed}
 	 *
 	 * @param speed The speed modifier for the controller (2 = twice as fast, 0.5 = half as fast, etc)
 	 */

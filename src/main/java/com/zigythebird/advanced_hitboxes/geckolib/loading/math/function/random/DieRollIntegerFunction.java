@@ -24,10 +24,10 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.random;
 
-import net.minecraft.util.Mth;
-import org.jetbrains.annotations.Nullable;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.MathFunction;
+import net.minecraft.util.Mth;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;

@@ -24,20 +24,20 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe;
 
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationController;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 
 /**
  * A bone pseudo-stack for bone animation positions, scales, and rotations
  * <p>
  * Animation points are calculated then pushed onto their respective queues to be used for transformations in rendering
  */
-public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueue, AnimationPointQueue rotationYQueue,
-								 AnimationPointQueue rotationZQueue, AnimationPointQueue positionXQueue, AnimationPointQueue positionYQueue,
-								 AnimationPointQueue positionZQueue, AnimationPointQueue scaleXQueue, AnimationPointQueue scaleYQueue,
-								 AnimationPointQueue scaleZQueue) {
-	public BoneAnimationQueue(GeoBone bone) {
+public record BoneAnimationQueue(HitboxGeoBone bone, AnimationPointQueue rotationXQueue, AnimationPointQueue rotationYQueue,
+                                 AnimationPointQueue rotationZQueue, AnimationPointQueue positionXQueue, AnimationPointQueue positionYQueue,
+                                 AnimationPointQueue positionZQueue, AnimationPointQueue scaleXQueue, AnimationPointQueue scaleYQueue,
+                                 AnimationPointQueue scaleZQueue) {
+	public BoneAnimationQueue(HitboxGeoBone bone) {
 		this(bone, new AnimationPointQueue(), new AnimationPointQueue(), new AnimationPointQueue(),
 				new AnimationPointQueue(), new AnimationPointQueue(), new AnimationPointQueue(),
 				new AnimationPointQueue(), new AnimationPointQueue(), new AnimationPointQueue());
@@ -48,7 +48,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -61,7 +61,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -74,7 +74,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -87,7 +87,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (base on the {@link AnimationController}
+	 * @param transitionLength The length of the transition (base on the {@link HitboxAnimationController}
 	 * @param startSnapshot The {@link BoneSnapshot} that serves as the starting positions relevant to the keyframe provided
 	 * @param nextXPoint The X {@code AnimationPoint} that is next in the queue, to serve as the end value of the new point
 	 * @param nextYPoint The Y {@code AnimationPoint} that is next in the queue, to serve as the end value of the new point
@@ -104,7 +104,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -117,7 +117,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -130,7 +130,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -143,7 +143,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (base on the {@link AnimationController}
+	 * @param transitionLength The length of the transition (base on the {@link HitboxAnimationController}
 	 * @param startSnapshot The {@link BoneSnapshot} that serves as the starting scales relevant to the keyframe provided
 	 * @param nextXPoint The X {@code AnimationPoint} that is next in the queue, to serve as the end value of the new point
 	 * @param nextYPoint The Y {@code AnimationPoint} that is next in the queue, to serve as the end value of the new point
@@ -160,7 +160,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -173,7 +173,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -186,7 +186,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (based on the {@link AnimationController})
+	 * @param transitionLength The length of the transition (based on the {@link HitboxAnimationController})
 	 * @param startValue The value of the point at the start of its transition
 	 * @param endValue The value of the point at the end of its transition
 	 */
@@ -199,7 +199,7 @@ public record BoneAnimationQueue(GeoBone bone, AnimationPointQueue rotationXQueu
 	 *
 	 * @param keyFrame The {@code Nullable} Keyframe relevant to the animation point
 	 * @param lerpedTick The lerped time (current tick + partial tick) that the point starts at
-	 * @param transitionLength The length of the transition (base on the {@link AnimationController}
+	 * @param transitionLength The length of the transition (base on the {@link HitboxAnimationController}
 	 * @param startSnapshot The {@link BoneSnapshot} that serves as the starting rotations relevant to the keyframe provided
 	 * @param initialSnapshot The {@link BoneSnapshot} that serves as the unmodified rotations of the bone
 	 * @param nextXPoint The X {@code AnimationPoint} that is next in the queue, to serve as the end value of the new point
