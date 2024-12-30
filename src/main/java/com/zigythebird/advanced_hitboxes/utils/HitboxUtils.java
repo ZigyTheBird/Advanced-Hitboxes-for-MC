@@ -1,18 +1,18 @@
 package com.zigythebird.advanced_hitboxes.utils;
 
 import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
+import com.zigythebird.advanced_hitboxes.interfaces.AABBInterface;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityInterface;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
-import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -77,11 +77,11 @@ public class HitboxUtils {
         }
 
         for (HitboxGeoBone bone : hitboxBones) {
-            OBB hitbox = null;
+            AdvancedHitbox hitbox = null;
 
             for (AdvancedHitbox entry : animatable.getHitboxes()) {
-                if (entry instanceof OBB && entry.getName().equals(bone.getName())) {
-                    hitbox = (OBB) entry;
+                if (entry.getName().equals(bone.getName())) {
+                    hitbox = entry;
                     break;
                 }
             }
@@ -100,16 +100,35 @@ public class HitboxUtils {
             rotation = rotation.set(ModMath.clampToRadian(rotation.x), ModMath.clampToRadian(rotation.y), ModMath.clampToRadian(rotation.z));
             Level level = ((Entity) animatable).level();
             float tickDelta = CommonSideUtils.getTickDelta(level);
-            float lerpedBodyRot = Mth.rotLerp(tickDelta, ((LivingEntityInterface) entity).advanced_Hitboxes$commonYBodyRot0(), ((LivingEntityInterface) entity).advanced_Hitboxes$commonYBodyRot());
-            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(position.x, position.y, position.z), 0, entity instanceof LivingEntity ?  lerpedBodyRot: 0);
+            float lerpedBodyRot = entity instanceof LivingEntity ? Mth.rotLerp(tickDelta, ((LivingEntityInterface) entity).advanced_Hitboxes$commonYBodyRot0(), ((LivingEntityInterface) entity).advanced_Hitboxes$commonYBodyRot()) : 0;
+            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(position.x, position.y, position.z), 0, lerpedBodyRot);
             double d0 = Mth.lerp(tickDelta, entity.xOld, entity.getX());
             double d1 = Mth.lerp(tickDelta, entity.yOld, entity.getY());
             double d2 = Mth.lerp(tickDelta, entity.zOld, entity.getZ());
             finalPosition = finalPosition.add(d0, d1, d2);
-            if (hitbox == null) {
-                hitboxes.add(new OBB(bone.getName(), finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation));
-            } else {
-                hitbox.update(finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation);
+
+            if (bone.hitboxType == null) {
+                if (hitbox == null) {
+                    hitboxes.add(new OBB(bone.getName(), finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation));
+                }
+                else if (hitbox instanceof OBB obb) {
+                    obb.update(finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation);
+                }
+                else {
+                    hitboxes.remove(hitbox);
+                    hitboxes.add(new OBB(bone.getName(), finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation));
+                }
+            }
+            else if (bone.hitboxType.equalsIgnoreCase("aabb")) {
+                finalPosition = finalPosition.add(d0, d1, d2);
+                Vec3 size1 = ModMath.vector3dToVec3(size.div(32));
+                AABB aabb = new AABB(finalPosition.subtract(size1), finalPosition.add(size1));
+                ((AABBInterface)aabb).setName(bone.getName());
+
+                if (hitbox != null) {
+                    hitboxes.remove(hitbox);
+                }
+                hitboxes.add((AdvancedHitbox) aabb);
             }
         }
     }
@@ -144,67 +163,45 @@ public class HitboxUtils {
         if (shapes.isEmpty()) {
             return deltaMovement;
         } else {
-            double d0 = deltaMovement.x;
-            double d1 = deltaMovement.y;
-            double d2 = deltaMovement.z;
+            double d0 = Math.abs(deltaMovement.x) > 1.0E-7 ? deltaMovement.x : 0;
+            double d1 = Math.abs(deltaMovement.y) > 1.0E-7 ? deltaMovement.y : 0;
+            double d2 = Math.abs(deltaMovement.z) > 1.0E-7 ? deltaMovement.z : 0;
+
+            if (d0 == 0 && d1 == 0 && d2 == 0) {
+                return Vec3.ZERO;
+            }
+
             entityOBB = new OBB(entityOBB);
-            entityOBB.inflate(-1.0E-3);
+            entityOBB.inflate(-1.0E-7);
 
-            if (d1 != 0.0) {
-                d1 = collide(Direction.Axis.Y, entityOBB, shapes, d1);
-                if (d1 != 0.0) {
-                    entityOBB = entityOBB.offset(0.0, d1, 0.0);
+            entityOBB.offset(d0, d1, d2);
+            for (VoxelShape shape : shapes) {
+                for (AABB aabb : shape.toAabbs()) {
+                    OBB.OBBIntersectResult result = OBB.intersects(entityOBB, new OBB(null, aabb));
+                    if (result.intersects()) {
+                        Vector3d offset = result.axis().mul(result.length());
+                        Vec3 aabbCentre = aabb.getCenter();
+                        Vec3 pos1 = new Vec3(entityOBB.center.x + offset.x, entityOBB.center.y + offset.y, entityOBB.center.z + offset.z);
+                        Vec3 pos2 = new Vec3(entityOBB.center.x - offset.x, entityOBB.center.y - offset.y, entityOBB.center.z - offset.z);
+                        if (pos2.distanceTo(aabbCentre) > pos1.distanceTo(aabbCentre)) {
+                            offset.mul(-1);
+                        }
+                        entityOBB.offset(offset.x, offset.y, offset.z);
+                        d0 += offset.x();
+                        d1 += offset.y();
+                        d2 += offset.z();
+                    }
+
+                    if (Math.abs(d0) < 1.0E-7) d0 = 0;
+                    if (Math.abs(d1) < 1.0E-7) d1 = 0;
+                    if (Math.abs(d2) < 1.0E-7) d2 = 0;
+
+                    if (d0 == 0 && d1 == 0 && d2 == 0) break;
                 }
-            }
-
-            boolean flag = Math.abs(d0) < Math.abs(d2);
-            if (flag && d2 != 0.0) {
-                d2 = collide(Direction.Axis.Z, entityOBB, shapes, d2);
-                if (d2 != 0.0) {
-                    entityOBB = entityOBB.offset(0.0, 0.0, d2);
-                }
-            }
-
-            if (d0 != 0.0) {
-                d0 = collide(Direction.Axis.X, entityOBB, shapes, d0);
-                if (!flag && d0 != 0.0) {
-                    entityOBB = entityOBB.offset(d0, 0.0, 0.0);
-                }
-            }
-
-            if (!flag && d2 != 0.0) {
-                d2 = collide(Direction.Axis.Z, entityOBB, shapes, d2);
+                if (d0 == 0 && d1 == 0 && d2 == 0) break;
             }
 
             return new Vec3(d0, d1, d2);
         }
-    }
-
-    private static double collide(Direction.Axis movementAxis, OBB collisionBox, Iterable<VoxelShape> possibleHits, double desiredOffset) {
-        if (Math.abs(desiredOffset) < 1.0E-7) {
-            return 0.0;
-        }
-
-        switch (movementAxis) {
-            case X -> collisionBox.offset(desiredOffset, 0, 0);
-            case Y -> collisionBox.offset(0, desiredOffset, 0);
-            case Z -> collisionBox.offset(0, 0, desiredOffset);
-        }
-        boolean intersects = false;
-        for (VoxelShape shape : possibleHits) {
-            for (AABB aabb : shape.toAabbs()) {
-                if (collisionBox.intersects(aabb)) {
-                    intersects = true;
-                    break;
-                }
-            }
-            if (intersects) break;
-        }
-        switch (movementAxis) {
-            case X -> collisionBox.offset(-desiredOffset, 0, 0);
-            case Y -> collisionBox.offset(0, -desiredOffset, 0);
-            case Z -> collisionBox.offset(0, 0, -desiredOffset);
-        }
-        return intersects ? 0 : desiredOffset;
     }
 }

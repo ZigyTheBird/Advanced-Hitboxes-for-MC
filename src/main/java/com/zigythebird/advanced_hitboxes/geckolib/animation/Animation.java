@@ -26,8 +26,8 @@ package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimation;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

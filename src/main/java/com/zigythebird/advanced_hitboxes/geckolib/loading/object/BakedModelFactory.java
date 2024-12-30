@@ -25,8 +25,8 @@
 package com.zigythebird.advanced_hitboxes.geckolib.loading.object;
 
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Bone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Cube;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.ModelProperties;
@@ -118,6 +118,8 @@ public interface BakedModelFactory {
 			for (BoneStructure child : boneStructure.children().values()) {
 				newBone.getChildBones().add(constructBone(child, properties, newBone));
 			}
+
+			newBone.hitboxType = bone.hitboxType();
 
 			return newBone;
 		}

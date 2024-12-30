@@ -1,6 +1,6 @@
 package com.zigythebird.advanced_hitboxes.item;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.mixin.accessors.LevelAccessor;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;

@@ -2,7 +2,7 @@ package com.zigythebird.advanced_hitboxes.mixin.common;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
 import com.zigythebird.advanced_hitboxes.mixin.accessors.EntityAccessor;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
@@ -11,7 +11,6 @@ import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -45,15 +44,13 @@ public abstract class EntityMixin implements EntityInterface {
         return null;
     }
 
-    @Inject(method = "isInWall", at = @At("HEAD"), cancellable = true)
-    private void isInWall(CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(false);
-    }
-
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void tick(CallbackInfo ci) {
+    @Inject(method = "move", at = @At("HEAD"))
+    private void move(CallbackInfo ci) {
         Entity entity = ((Entity)(Object)this);
-        if (entity instanceof AdvancedHitboxEntity advanced && advanced.useAdvancedHitboxesForCollision()) HitboxUtils.tickAndUpdateHitboxesForEntity(advanced);
+        if (entity instanceof AdvancedHitboxEntity advanced && advanced.useAdvancedHitboxesForCollision()) {
+            HitboxUtils.tick((Entity) advanced);
+            HitboxUtils.updateOrMakeHitboxesForEntity(advanced);
+        }
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
@@ -95,11 +92,16 @@ public abstract class EntityMixin implements EntityInterface {
         if (entity instanceof AdvancedHitboxEntity && ((AdvancedHitboxEntity) entity).useAdvancedHitboxesForCollision()) {
             Vec3 result = d0;
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {
-                if (hitbox instanceof OBB obb && ((AdvancedHitboxEntity) entity).useHitboxForCollision(obb.getName())) {
-                    if (flag3) {
-                        obb = new OBB(obb).offset(0, vec3.y, 0);
+                if (((AdvancedHitboxEntity) entity).useHitboxForCollision(hitbox.getName())) {
+                    if (hitbox instanceof OBB obb) {
+                        if (flag3) {
+                            obb = new OBB(obb).offset(0, vec3.y, 0);
+                        }
+                        result = HitboxUtils.collideWithShapes(result, obb, d2);
                     }
-                    result = HitboxUtils.collideWithShapes(result, obb, d2);
+                    else if (hitbox instanceof AABB aabb) {
+                        result = collideWithShapes(d0, aabb, d2);
+                    }
                 }
             }
             return result;
@@ -114,26 +116,35 @@ public abstract class EntityMixin implements EntityInterface {
         if (entity instanceof AdvancedHitboxEntity && ((AdvancedHitboxEntity) entity).useAdvancedHitboxesForCollision()) {
             List<AABB> aabbs = new ArrayList<>();
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {
-                if (hitbox instanceof OBB obb && ((AdvancedHitboxEntity) entity).useHitboxForCollision(obb.getName())) {
-                    //Todo: Seems to work just fine but it doesn't hurt to look into this later.
-                    obb.updateScaledAxis();
-                    aabbs.add(obb.toAABB().expandTowards(vec));
+                if (((AdvancedHitboxEntity) entity).useHitboxForCollision(hitbox.getName())) {
+                    if (hitbox instanceof OBB obb) {
+                        //Todo: Seems to work just fine but it doesn't hurt to look into this later.
+                        obb.updateScaledAxis();
+                        aabbs.add(obb.toAABB().expandTowards(vec));
+                    }
+                    else if (hitbox instanceof AABB aabb) {
+                        aabbs.add(aabb.expandTowards(vec));
+                    }
                 }
             }
             List<VoxelShape> list = new ArrayList<>();
             for (AABB aabb : aabbs) {
-                List<VoxelShape> list1 = EntityAccessor.callCollectColliders(entity, level, potentialHits, aabb);
-                List<VoxelShape> copy = list;
-                copy.removeAll(list1);
-                list = new ArrayList<>();
-                list.addAll(list1);
-                list.addAll(copy);
+                //Todo: Try and avoid duplicates in the list.
+                list.addAll(EntityAccessor.callCollectColliders(entity, level, potentialHits, aabb));
             }
             Vec3 result = vec;
+            boolean checkForZero = true;
+            if (vec.equals(Vec3.ZERO)) checkForZero = false;
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {
-                if (hitbox instanceof OBB obb && ((AdvancedHitboxEntity) entity).useHitboxForCollision(obb.getName())) {
-                    result = HitboxUtils.collideWithShapes(result, obb, list);
-                    if (result.x == 0 && result.y == 0 && result.z == 0) {
+                if (((AdvancedHitboxEntity) entity).useHitboxForCollision(hitbox.getName())) {
+                    if (hitbox instanceof OBB obb) {
+                        result = HitboxUtils.collideWithShapes(result, obb, list);
+                    }
+                    else if (hitbox instanceof AABB aabb) {
+                        result = collideWithShapes(result, aabb, list);
+                    }
+
+                    if (checkForZero && result.x == 0 && result.y == 0 && result.z == 0) {
                         break;
                     }
                 }

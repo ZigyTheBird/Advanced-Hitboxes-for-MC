@@ -1,6 +1,6 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedEntityHitResult;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
@@ -21,7 +21,6 @@ import java.util.function.Predicate;
 
 @Mixin(ProjectileUtil.class)
 public abstract class ProjectileUtilMixin {
-
     @Inject(method = "getEntityHitResult(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;F)Lnet/minecraft/world/phys/EntityHitResult;", at = @At("HEAD"), cancellable = true)
     private static void inject(Level level, Entity projectile, Vec3 startVec, Vec3 endVec, AABB boundingBox, Predicate<Entity> filter, float inflationAmount, CallbackInfoReturnable<EntityHitResult> cir) {
         double d = Double.MAX_VALUE;

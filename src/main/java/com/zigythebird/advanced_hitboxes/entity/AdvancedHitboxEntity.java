@@ -1,12 +1,13 @@
-package com.zigythebird.advanced_hitboxes.interfaces;
+package com.zigythebird.advanced_hitboxes.entity;
 
+import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationProcessor;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimatableManager;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationProcessor;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.PlayState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
+import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import net.minecraft.world.entity.Entity;
 

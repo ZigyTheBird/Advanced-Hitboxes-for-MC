@@ -3,13 +3,15 @@ package com.zigythebird.advanced_hitboxes.client.renderers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
 import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -24,6 +26,7 @@ public class AdvancedHitboxRenderer {
     public static void renderAdvancedHitboxes(VertexConsumer buffer, Entity entity, double camX, double camY, double camZ) {
         if (entity instanceof AdvancedHitboxEntity || entity instanceof Player) {
             if (!((AdvancedHitboxEntity)entity).useAdvancedHitboxesForCollision()) {
+                HitboxUtils.tick(entity);
                 HitboxUtils.tickAndUpdateHitboxesForEntity((AdvancedHitboxEntity) entity);
             }
             PoseStack poseStack = new PoseStack();
@@ -32,8 +35,11 @@ public class AdvancedHitboxRenderer {
                     poseStack.pushPose();
                     OBB obb = (OBB) hitbox;
                     poseStack.translate(obb.center.x - camX, obb.center.y - camY, obb.center.z - camZ);
-                    renderOBB(new OBB(obb.getName(), Vec3.ZERO, obb.size, obb.rotation), poseStack, buffer);
+                    renderOBB(new OBB(obb.getName(), Vec3.ZERO, obb.size.add(1.0E-6, 1.0E-6, 1.0E-6), obb.rotation), poseStack, buffer);
                     poseStack.popPose();
+                }
+                else if (hitbox instanceof AABB aabb) {
+                    LevelRenderer.renderLineBox(poseStack, buffer, aabb, 1.0F, 0.0F, 0.0F, 1.0F);
                 }
             }
         }

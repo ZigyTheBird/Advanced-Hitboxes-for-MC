@@ -1,9 +1,9 @@
 package com.zigythebird.advanced_hitboxes.compat;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.HitboxCache;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.playeranimatorapi.data.PlayerAnimationData;
 import com.zigythebird.playeranimatorapi.modifier.CommonModifier;
 import net.minecraft.world.entity.player.Player;

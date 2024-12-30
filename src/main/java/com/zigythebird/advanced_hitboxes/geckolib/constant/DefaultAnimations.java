@@ -24,11 +24,11 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.constant;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
+import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.PlayState;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.RawAnimation;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 

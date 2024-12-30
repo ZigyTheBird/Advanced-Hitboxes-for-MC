@@ -5,6 +5,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3d;
 import org.joml.Quaterniond;
 import org.joml.Vector2d;
@@ -14,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Mostly based on Gabor Szauer's Game Physics Cookbook.
+ */
 public class OBB implements AdvancedHitbox {
     private final String name;
 
@@ -108,6 +112,9 @@ public class OBB implements AdvancedHitbox {
         return this;
     }
 
+    /**
+     * You need to run this after changing the rotation for most methods to work.
+     */
     public void calculateOrientation() {
         orientation = new Matrix3d();
         new Quaterniond().rotationXYZ(rotation.x, rotation.y, rotation.z).get(orientation);
@@ -117,11 +124,14 @@ public class OBB implements AdvancedHitbox {
         orientation.getColumn(0, axisXTemp);
         orientation.getColumn(1, axisYTemp);
         orientation.getColumn(2, axisZTemp);
-        axisX = ModMath.vector3dToVec3(axisXTemp);
-        axisY = ModMath.vector3dToVec3(axisYTemp);
-        axisZ = ModMath.vector3dToVec3(axisZTemp);
+        axisX = ModMath.vector3dToVec3(axisXTemp.absolute());
+        axisY = ModMath.vector3dToVec3(axisYTemp.absolute());
+        axisZ = ModMath.vector3dToVec3(axisZTemp.absolute());
     }
 
+    /**
+     * You need to run for some methods to work.
+     */
     public OBB updateScaledAxis() {
         this.scaledAxisX = axisX.scale(this.extent.x);
         this.scaledAxisY = axisY.scale(this.extent.y);
@@ -129,6 +139,9 @@ public class OBB implements AdvancedHitbox {
         return this;
     }
 
+    /**
+     * You need to run this for some methods to work.
+     */
     public OBB updateVertex() {
         this.scaledAxisX = axisX.scale(this.extent.x);
         this.scaledAxisY = axisY.scale(this.extent.y);
@@ -145,12 +158,19 @@ public class OBB implements AdvancedHitbox {
         return this;
     }
 
+
+    /**
+     * You need to run the updateScaledAxis or updateVertex method for this to work.
+     */
     public Vec3 getMaxVertex() {
         return this.center.add(Math.abs(this.scaledAxisZ.x) + Math.abs(this.scaledAxisX.x) + Math.abs(this.scaledAxisY.x),
                 Math.abs(this.scaledAxisZ.y) + Math.abs(this.scaledAxisX.y) + Math.abs(this.scaledAxisY.y),
                 Math.abs(this.scaledAxisZ.z) + Math.abs(this.scaledAxisX.z) + Math.abs(this.scaledAxisY.z));
     }
 
+    /**
+     * You need to run the updateScaledAxis or updateVertex method for this to work.
+     */
     public Vec3 getMinVertex() {
         return this.center.subtract(Math.abs(this.scaledAxisZ.x) + Math.abs(this.scaledAxisX.x) + Math.abs(this.scaledAxisY.x),
                         Math.abs(this.scaledAxisZ.y) + Math.abs(this.scaledAxisX.y) + Math.abs(this.scaledAxisY.y),
@@ -249,34 +269,32 @@ public class OBB implements AdvancedHitbox {
 
     public boolean intersects(AABB boundingBox) {
         OBB otherOBB = new OBB(null, boundingBox);
-        return Intersects(this, otherOBB);
+        return intersects(this, otherOBB).intersects();
     }
 
     public boolean intersects(OBB otherOBB) {
-        return Intersects(this, otherOBB);
+        return intersects(this, otherOBB).intersects();
     }
 
-    public static boolean Intersects(OBB a, OBB b) {
+    /**
+     * <a href="https://www.youtube.com/watch?v=EB6NY5sGd08">...</a>
+     * SethBling the LEGEND coming in clutch!!!
+     * <p>
+     * The axis in the result is the axis with the shortest overlap.
+     * And the length value is the length of said overlap.
+     */
+    public static OBBIntersectResult intersects(OBB a, OBB b) {
         List<Vector3d> test = new ArrayList<>();
 
-        Vector3d vec0 = new Vector3d();
-        Vector3d vec1 = new Vector3d();
-        Vector3d vec2 = new Vector3d();
-        Vector3d vec10 = new Vector3d();
-        Vector3d vec11 = new Vector3d();
-        Vector3d vec12 = new Vector3d();
-        a.orientation.getColumn(0, vec0);
-        a.orientation.getColumn(1, vec1);
-        a.orientation.getColumn(2, vec2);
-        b.orientation.getColumn(0, vec10);
-        b.orientation.getColumn(1, vec11);
-        b.orientation.getColumn(2, vec12);
-        test.add(vec0);
-        test.add(vec1);
-        test.add(vec2);
-        test.add(vec10);
-        test.add(vec11);
-        test.add(vec12);
+        a.updateVertex();
+        b.updateVertex();
+
+        test.add(new Vector3d(a.axisX.x, a.axisX.y, a.axisX.z));
+        test.add(new Vector3d(a.axisY.x, a.axisY.y, a.axisY.z));
+        test.add(new Vector3d(a.axisY.x, a.axisY.y, a.axisY.z));
+        test.add(new Vector3d(b.axisX.x, b.axisX.y, b.axisX.z));
+        test.add(new Vector3d(b.axisY.x, b.axisY.y, b.axisY.z));
+        test.add(new Vector3d(b.axisZ.x, b.axisZ.y, b.axisZ.z));
 
         for (int i = 0; i < 3; ++i) { // Fill out rest of axis
             test.add(6 + i * 3, test.get(i).cross(test.get(0)));
@@ -284,30 +302,43 @@ public class OBB implements AdvancedHitbox {
             test.add(6 + i * 3 + 2, test.get(i).cross(test.get(2)));
         }
 
+        Vector3d axis = null;
+        double distance = Double.POSITIVE_INFINITY;
         for (int i = 0; i < 15; ++i) {
-            if (!OverlapOnAxis(a, b, test.get(i))) {
-                return false; // Seperating axis found
+            Vector3d currentAxis = test.get(i);
+            if (currentAxis.x() == 0 && currentAxis.y() == 0 && currentAxis.z() == 0) continue;
+            OBBOverlapResult result = overlapOnAxis(a, b, currentAxis);
+            if (!result.overlap()) {
+                return new OBBIntersectResult(false, null, null); // Seperating axis found
+            }
+            else if (result.result() < distance) {
+                distance = result.result();
+                axis = currentAxis;
             }
         }
 
-        return true; // Seperating axis not found
+        if (axis == null) {
+            return new OBBIntersectResult(false, null, null); //IDFK
+        }
+        return new OBBIntersectResult(true, axis, distance); // Seperating axis not found
     }
 
-    public static boolean OverlapOnAxis(OBB obb1, OBB obb2, Vector3d axis) {
+    public static OBBOverlapResult overlapOnAxis(OBB obb1, OBB obb2, Vector3d axis) {
         Vec3 axis2 = ModMath.vector3dToVec3(axis);
-        Vector2d a = obb1.GetInterval(axis2);
-        Vector2d b = obb2.GetInterval(axis2);
-        return b.x <= a.y && a.x <= b.y;
+        Vector2d a = obb1.getInterval(axis2);
+        Vector2d b = obb2.getInterval(axis2);
+        float length = (float) (Math.min(a.y(), b.y()) - Math.max(a.x(), b.x()));
+        return new OBBOverlapResult(!(b.y() < a.x() || a.y() < b.x()), length);
     }
 
     /**
+     * The updateVertex method must have been called in order for this method to work.
+     * <p>
      * In the resulting vector:
      * x = min
      * y = max
      */
-    public Vector2d GetInterval(Vec3 axis) {
-        this.updateVertex();
-
+    public Vector2d getInterval(Vec3 axis) {
         Vector2d result = new Vector2d(0, 0);
         result.x = result.y = axis.dot(vertices[0]);
 
@@ -319,4 +350,14 @@ public class OBB implements AdvancedHitbox {
 
         return result;
     }
+
+    /**
+     * <a href="https://www.youtube.com/watch?v=EB6NY5sGd08">...</a>
+     * SethBling the LEGEND coming in clutch!!!
+     * <p>
+     * The axis in the result is the axis with the shortest overlap.
+     * And the length value is the length of said overlap.
+     */
+    public record OBBIntersectResult(boolean intersects, @Nullable Vector3d axis, @Nullable Double length) {}
+    public record OBBOverlapResult(boolean overlap, double result) {}
 }

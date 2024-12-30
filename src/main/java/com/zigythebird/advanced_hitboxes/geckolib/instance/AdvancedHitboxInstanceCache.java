@@ -24,9 +24,9 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.instance;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimatableManager;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 
 /**
  * The base cache class responsible for returning the {@link HitboxAnimatableManager} for a given instanceof of a {@link AdvancedHitboxEntity}

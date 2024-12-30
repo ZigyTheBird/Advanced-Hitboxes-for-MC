@@ -24,12 +24,12 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.util;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.EasingType;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.InstancedAdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedModelFactory;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 
 /**
  * Helper class for various GeckoLib-specific functions.

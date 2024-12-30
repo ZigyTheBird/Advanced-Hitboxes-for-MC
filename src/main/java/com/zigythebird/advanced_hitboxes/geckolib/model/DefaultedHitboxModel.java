@@ -24,7 +24,7 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.model;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import net.minecraft.resources.ResourceLocation;
 
 /**

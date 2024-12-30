@@ -13,7 +13,7 @@ import net.neoforged.fml.ModList;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceReloadListener implements ResourceManagerReloadListener {
+public class PlayerAnimResourceReloadListener implements ResourceManagerReloadListener {
 
     private static List<ResourceLocation> resources = null;
 

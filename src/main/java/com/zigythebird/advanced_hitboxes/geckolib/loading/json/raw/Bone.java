@@ -42,7 +42,7 @@ public record Bone(double[] bindPoseRotation, Cube[] cubes, @Nullable Boolean de
 				   @Nullable Boolean mirror, @Nullable String name, @Nullable Boolean neverRender,
 				   @Nullable String parent, double[] pivot, @Nullable PolyMesh polyMesh,
 				   @Nullable Long renderGroupId, @Nullable Boolean reset, double[] rotation,
-				   @Nullable TextureMesh[] textureMeshes) {
+				   @Nullable TextureMesh[] textureMeshes, String hitboxType) {
 	public static JsonDeserializer<Bone> deserializer() throws JsonParseException {
 		return (json, type, context) -> {
 			JsonObject obj = json.getAsJsonObject();
@@ -61,8 +61,9 @@ public record Bone(double[] bindPoseRotation, Cube[] cubes, @Nullable Boolean de
 			Boolean reset = JsonUtil.getOptionalBoolean(obj, "reset");
 			double[] rotation = JsonUtil.jsonArrayToDoubleArray(GsonHelper.getAsJsonArray(obj, "rotation", null));
 			TextureMesh[] textureMeshes = JsonUtil.jsonArrayToObjectArray(GsonHelper.getAsJsonArray(obj, "texture_meshes", new JsonArray(0)), context, TextureMesh.class);
+			String hitboxType = GsonHelper.getAsString(obj, "hitbox_type", null);
 
-			return new Bone(bindPoseRotation, cubes, debug, inflate, locators, mirror, name, neverRender, parent, pivot, polyMesh, renderGroupId, reset, rotation, textureMeshes);
+			return new Bone(bindPoseRotation, cubes, debug, inflate, locators, mirror, name, neverRender, parent, pivot, polyMesh, renderGroupId, reset, rotation, textureMeshes, hitboxType);
 		};
 	}
 }

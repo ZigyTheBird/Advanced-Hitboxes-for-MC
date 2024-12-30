@@ -75,6 +75,8 @@ public class HitboxGeoBone {
 	
 	private boolean trackingMatrices;
 
+	public String hitboxType = null;
+
 	public HitboxGeoBone(@Nullable HitboxGeoBone parent, String name) {
 		this.parent = parent;
 		this.name = name;

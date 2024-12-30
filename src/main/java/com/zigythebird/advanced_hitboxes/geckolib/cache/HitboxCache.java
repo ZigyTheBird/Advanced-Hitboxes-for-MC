@@ -167,7 +167,7 @@ public class HitboxCache {
                 for (Map.Entry<String, JsonElement> entry : move.asMap().entrySet()) {
                     List<Pair<Integer, Vec3>> transforms = new ArrayList<>();
                     List<Pair<Integer, Vec3>> rotations = new ArrayList<>();
-                    //Not gonna bother supporting scaling for now
+                    //Todo: Add scaling support.
                     //List<Pair<Integer, Vec3>> scales = new ArrayList<>();
                     JsonObject jsonObject = (JsonObject) entry.getValue();
                     double x = jsonObject.has("x") ? jsonObject.get("x").getAsDouble() : 0;

@@ -25,13 +25,13 @@
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
-import com.zigythebird.advanced_hitboxes.interfaces.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.AnimationPoint;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimationQueue;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Mth;
 
