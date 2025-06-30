@@ -1,6 +1,9 @@
 package com.zigythebird.advanced_hitboxes.utils;
 
+import com.mojang.math.Axis;
+import com.zigythebird.advanced_hitboxes.accessor.AABBAccessor;
 import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
@@ -8,21 +11,20 @@ import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
-import com.zigythebird.advanced_hitboxes.interfaces.AABBInterface;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityInterface;
+import com.zigythebird.advanced_hitboxes.misc.CustomPoseStack;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
+import com.zigythebird.playeranimatorapi.ModInit;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.joml.Vector3d;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class HitboxUtils {
             LivingEntity livingEntity = animatable instanceof LivingEntity entity ? entity : null;
             boolean shouldSit = animatable.isPassenger() && (animatable.getVehicle() != null);
             float tickDelta = CommonSideUtils.getTickDelta(animatable.level());
-            float lerpBodyRot = livingEntity == null ? 0 : Mth.rotLerp(tickDelta, ((LivingEntityInterface) livingEntity).advanced_Hitboxes$commonYBodyRot0(), ((LivingEntityInterface) livingEntity).advanced_Hitboxes$commonYBodyRot());
+            float lerpBodyRot = livingEntity == null ? 0 : Mth.rotLerp(tickDelta, CommonSideUtils.getBodyYRot0(livingEntity), CommonSideUtils.getBodyYRot(livingEntity));
             float lerpHeadRot = livingEntity == null ? 0 : Mth.rotLerp(tickDelta, livingEntity.yHeadRotO, livingEntity.yHeadRot);
             float netHeadYaw = lerpHeadRot - lerpBodyRot;
 
@@ -53,119 +55,141 @@ public class HitboxUtils {
             animationState.setData(DataTickets.ENTITY_MODEL_DATA, new EntityModelData(shouldSit, animatable instanceof LivingEntity && ((LivingEntity) animatable).isBaby(), -netHeadYaw, -headPitch));
             currentModel.addAdditionalStateData(((T) animatable), instanceId, animationState::setData);
             currentModel.handleAnimations(((T) animatable), instanceId, animationState, tickDelta);
-            if (((AdvancedHitboxEntity) animatable).useAdvancedHitboxesForCollision()) HitboxUtils.updateOrMakeHitboxesForEntity((AdvancedHitboxEntity) animatable);
+
+            BakedHitboxModel bakedModel = currentModel.getBakedModel(currentModel.getModelResource((T)animatable));
+            for (HitboxGeoBone bone: bakedModel.topLevelBones()) {
+                applyTransformationsToBone((AdvancedHitboxEntity) animatable, bone);
+            }
+        }
+    }
+
+    public static void applyTransformationsToBone(AdvancedHitboxEntity entity, HitboxGeoBone bone) {
+        entity.applyTransformationsToBone(bone);
+        for (HitboxGeoBone child : bone.getChildBones()) {
+            applyTransformationsToBone(entity, child);
         }
     }
 
     public static void tickAndUpdateHitboxesForEntity(AdvancedHitboxEntity animatable) {
         tick((Entity) animatable);
-        if (!animatable.useAdvancedHitboxesForCollision()) updateOrMakeHitboxesForEntity(animatable);
+        updateOrMakeHitboxesForEntity(animatable);
     }
 
     public static void updateOrMakeHitboxesForEntity(AdvancedHitboxEntity animatable) {
         Entity entity = (Entity) animatable;
         List<AdvancedHitbox> hitboxes = animatable.getHitboxes();
         HitboxModel hitboxModel = animatable.getHitboxModel();
-
         BakedHitboxModel bakedModel = hitboxModel.getBakedModel(hitboxModel.getModelResource(animatable));
-        List<HitboxGeoBone> hitboxBones = new ArrayList<>();
+        CustomPoseStack poseStack = new CustomPoseStack();
+        float tickDelta = CommonSideUtils.getTickDelta(entity.level());
+        double d0 = Mth.lerp(tickDelta, entity.xOld, entity.getX());
+        double d1 = Mth.lerp(tickDelta, entity.yOld, entity.getY());
+        double d2 = Mth.lerp(tickDelta, entity.zOld, entity.getZ());
+        poseStack.translate(d0, d1, d2);
+
+        poseStack.mulPose(Axis.YN.rotationDegrees(180));
+        if (animatable instanceof Player)
+            poseStack.scale(0.9375F, 0.9375F, 0.9375F);
+
+        float lerpedBodyRot = entity instanceof LivingEntity livingEntity ? Mth.rotLerp(tickDelta, CommonSideUtils.getBodyYRot0(livingEntity), CommonSideUtils.getBodyYRot(livingEntity)) : 0;
+        if (lerpedBodyRot != 0) poseStack.mulPose(Axis.YN.rotationDegrees(lerpedBodyRot));
+
         for (HitboxGeoBone bone : bakedModel.topLevelBones()) {
-            if (bone.getName().endsWith("_hitbox")) {
-                hitboxBones.add(bone);
-            }
-            findHitboxBones(bone, hitboxBones);
+            processBoneRecursively(entity, hitboxes, poseStack, bone);
         }
-
-        for (HitboxGeoBone bone : hitboxBones) {
-            AdvancedHitbox hitbox = null;
-
-            for (AdvancedHitbox entry : animatable.getHitboxes()) {
-                if (entry.getName().equals(bone.getName())) {
-                    hitbox = entry;
-                    break;
-                }
-            }
-
-            GeoCube cube = bone.getCubes().get(0);
-            Vector3d position = new Vector3d(cube.origin().x, cube.origin().y, cube.origin().z);
-            Vector3d size = bone.getScaleVector().mul(cube.size().x, cube.size().y, cube.size().z);
-            Vector3d rotation = new Vector3d();
-            Vector3d boneRotation = bone.getRotationVector();
-            getSizeFromBoneParents(bone, size);
-            position.add(size.x / 32, size.y / 32, size.z / 32);
-            ModMath.rotateAroundPivot(rotation, new Vector3d(cube.rotation().x, cube.rotation().y, cube.rotation().z), position, (float) cube.pivot().x / 16, (float) cube.pivot().y / 16, (float) cube.pivot().z / 16);
-            position.add(bone.getPositionVector());
-            ModMath.rotateAroundPivot(rotation, boneRotation, position, bone.getPivotX() / 16, bone.getPivotY() / 16, bone.getPivotZ() / 16);
-            applyParentBoneTransforms(bone, position, rotation);
-            rotation = rotation.set(ModMath.clampToRadian(rotation.x), ModMath.clampToRadian(rotation.y), ModMath.clampToRadian(rotation.z));
-            Level level = ((Entity) animatable).level();
-            float tickDelta = CommonSideUtils.getTickDelta(level);
-            float lerpedBodyRot = entity instanceof LivingEntity ? Mth.rotLerp(tickDelta, ((LivingEntityInterface) entity).advanced_Hitboxes$commonYBodyRot0(), ((LivingEntityInterface) entity).advanced_Hitboxes$commonYBodyRot()) : 0;
-            Vec3 finalPosition = ModMath.moveInLocalSpace(new Vec3(position.x, position.y, position.z), 0, lerpedBodyRot);
-            double d0 = Mth.lerp(tickDelta, entity.xOld, entity.getX());
-            double d1 = Mth.lerp(tickDelta, entity.yOld, entity.getY());
-            double d2 = Mth.lerp(tickDelta, entity.zOld, entity.getZ());
-            finalPosition = finalPosition.add(d0, d1, d2);
-
-            if (bone.hitboxType == null) {
-                if (hitbox == null) {
-                    hitboxes.add(new OBB(bone.getName(), finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation));
-                }
-                else if (hitbox instanceof OBB obb) {
-                    obb.update(finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation);
-                }
-                else {
-                    hitboxes.remove(hitbox);
-                    hitboxes.add(new OBB(bone.getName(), finalPosition, ModMath.vector3dToVec3(size.div(16)), rotation));
-                }
-            }
-            else if (bone.hitboxType.equalsIgnoreCase("aabb")) {
-                finalPosition = finalPosition.add(d0, d1, d2);
-                Vec3 size1 = ModMath.vector3dToVec3(size.div(32));
-                AABB aabb = new AABB(finalPosition.subtract(size1), finalPosition.add(size1));
-                ((AABBInterface)aabb).setName(bone.getName());
-
-                if (hitbox != null) {
-                    hitboxes.remove(hitbox);
-                }
-                hitboxes.add((AdvancedHitbox) aabb);
-            }
-        }
+        //For debugging purposes
+        //if (!poseStack.clear()) throw new RuntimeException("You made an oopsie messing with the posestack handling in the HitboxUtils class!");
     }
 
-    public static void findHitboxBones(HitboxGeoBone bone, List<HitboxGeoBone> list) {
+    public static void processBoneRecursively(Entity entity, List<AdvancedHitbox> hitboxes,
+                                              CustomPoseStack poseStack, HitboxGeoBone bone) {
+        poseStack.pushPose();
+        ModMath.prepMatrixForBone(poseStack, bone);
+        if (bone.getName().endsWith("_hitbox")) {
+            if (bone.hitboxType == null) processHitboxBoneOBB(entity, hitboxes, poseStack, bone);
+            else if ("aabb".equalsIgnoreCase(bone.hitboxType)) processHitboxBoneAABB(entity, hitboxes, poseStack, bone);
+        }
         for (HitboxGeoBone child : bone.getChildBones()) {
-            if (child.getName().endsWith("_hitbox")) {
-                list.add(child);
+            processBoneRecursively(entity, hitboxes, poseStack, child);
+        }
+        poseStack.popPose();
+    }
+
+    public static void processHitboxBoneOBB(Entity entity, List<AdvancedHitbox> hitboxes,
+                                            CustomPoseStack poseStack, HitboxGeoBone bone) {
+        if (bone.getCubes().isEmpty()) {
+            ModInit.LOGGER.debug("Hitbox bone called {} doesn't have any cubes", bone.getName());
+            return;
+        }
+        poseStack.pushPose();
+        AdvancedHitbox hitbox = null;
+
+        for (AdvancedHitbox entry : ((AdvancedHitboxEntity)entity).getHitboxes()) {
+            if (entry.getName().equals(bone.getName())) {
+                hitbox = entry;
+                break;
             }
-            findHitboxBones(child, list);
         }
+
+        GeoCube cube = bone.getCubes().get(0);
+        ModMath.translateToPivotPoint(poseStack, cube);
+        ModMath.rotateMatrixAroundCube(poseStack, cube);
+        ModMath.translateAwayFromPivotPoint(poseStack, cube);
+
+        Matrix4f pose = poseStack.last().pose();
+        Matrix3f orientation = new Matrix3f();
+        pose.get3x3(orientation);
+        Vector3f size = poseStack.last().size().mul((float) cube.size().x(), (float) cube.size().y(), (float) cube.size().z()).div(32);
+        List<Vec3> vertices = new ArrayList<>();
+
+        for (Vector3d vertex : cube.vertexSet().allVertices()) {
+            Vector4f vector4f = pose.transform(new Vector4f((float) vertex.x, (float) vertex.y, (float) vertex.z, 1.0F));
+            vertices.add(new Vec3(vector4f.x, vector4f.y, vector4f.z));
+        }
+
+        Vec3[] verticesArray = vertices.toArray(new Vec3[8]);
+
+        if (hitbox == null) {
+            hitboxes.add(new OBB(bone.getName(), verticesArray, ModMath.vector3fToVec3(size), orientation));
+        }
+        else if (hitbox instanceof OBB obb) {
+            obb.update(verticesArray, ModMath.vector3fToVec3(size), orientation);
+        }
+        else {
+            hitboxes.remove(hitbox);
+            hitboxes.add(new OBB(bone.getName(), verticesArray, ModMath.vector3fToVec3(size), orientation));
+        }
+        poseStack.popPose();
     }
 
-    public static void getSizeFromBoneParents(HitboxGeoBone bone, Vector3d size) {
-        HitboxGeoBone parent = bone.getParent();
-        if (parent != null) {
-            size.mul(parent.getScaleVector());
-            getSizeFromBoneParents(parent, size);
+    public static void processHitboxBoneAABB(Entity entity, List<AdvancedHitbox> hitboxes,
+                                            CustomPoseStack poseStack, HitboxGeoBone bone) {
+        AdvancedHitbox hitbox = null;
+        for (AdvancedHitbox entry : ((AdvancedHitboxEntity)entity).getHitboxes()) {
+            if (entry.getName().equals(bone.getName())) {
+                hitbox = entry;
+                break;
+            }
         }
-    }
+        ((AdvancedHitboxEntity)entity).getHitboxes().remove(hitbox);
 
-    public static void applyParentBoneTransforms(HitboxGeoBone bone, Vector3d position, Vector3d rotation) {
-        HitboxGeoBone parent = bone.getParent();
-        if (parent != null) {
-            ModMath.rotateAroundPivot(rotation, parent.getRotationVector(), position, parent.getPivotX() / 16, parent.getPivotY() / 16, parent.getPivotZ() / 16);
-            position.add(parent.getPositionVector());
-            applyParentBoneTransforms(parent, position, rotation);
-        }
+
+        GeoCube cube = bone.getCubes().get(0);
+        Matrix4f pose = poseStack.last().pose();
+        Vec3 position = cube.origin().add(pose.m30(), pose.m31(), pose.m32());
+        Vec3 size = cube.size().multiply(ModMath.vector3fToVec3(poseStack.last().size().div(32)));
+        AABB aabb = new AABB(-size.x(), -size.y(), -size.z(), size.x(), size.y(), size.z()).move(position);
+        ((AABBAccessor)aabb).setName(bone.getName());
+        hitboxes.add(((AdvancedHitbox) aabb));
     }
 
     public static Vec3 collideWithShapes(Vec3 deltaMovement, OBB entityOBB, List<VoxelShape> shapes) {
         if (shapes.isEmpty()) {
             return deltaMovement;
         } else {
-            double d0 = Math.abs(deltaMovement.x) > 1.0E-7 ? deltaMovement.x : 0;
-            double d1 = Math.abs(deltaMovement.y) > 1.0E-7 ? deltaMovement.y : 0;
-            double d2 = Math.abs(deltaMovement.z) > 1.0E-7 ? deltaMovement.z : 0;
+            double d0 = Math.abs(deltaMovement.x) > 1.0E-99 ? deltaMovement.x : 0;
+            double d1 = Math.abs(deltaMovement.y) > 1.0E-99 ? deltaMovement.y : 0;
+            double d2 = Math.abs(deltaMovement.z) > 1.0E-99 ? deltaMovement.z : 0;
 
             if (d0 == 0 && d1 == 0 && d2 == 0) {
                 return Vec3.ZERO;
@@ -177,9 +201,9 @@ public class HitboxUtils {
             entityOBB.offset(d0, d1, d2);
             for (VoxelShape shape : shapes) {
                 for (AABB aabb : shape.toAabbs()) {
-                    OBB.OBBIntersectResult result = OBB.intersects(entityOBB, new OBB(null, aabb));
+                    OBB.OBBIntersectResult result = OBB.intersects(entityOBB, new OBB(aabb));
                     if (result.intersects()) {
-                        Vector3d offset = result.axis().mul(result.length());
+                        Vector3d offset = result.axis().mul(result.length() <= 1 ? result.length() : 1);
                         Vec3 aabbCentre = aabb.getCenter();
                         Vec3 pos1 = new Vec3(entityOBB.center.x + offset.x, entityOBB.center.y + offset.y, entityOBB.center.z + offset.z);
                         Vec3 pos2 = new Vec3(entityOBB.center.x - offset.x, entityOBB.center.y - offset.y, entityOBB.center.z - offset.z);
@@ -192,9 +216,9 @@ public class HitboxUtils {
                         d2 += offset.z();
                     }
 
-                    if (Math.abs(d0) < 1.0E-7) d0 = 0;
-                    if (Math.abs(d1) < 1.0E-7) d1 = 0;
-                    if (Math.abs(d2) < 1.0E-7) d2 = 0;
+//                    if (Math.abs(d0) < 1.0E-7) d0 = 0;
+//                    if (Math.abs(d1) < 1.0E-7) d1 = 0;
+//                    if (Math.abs(d2) < 1.0E-7) d2 = 0;
 
                     if (d0 == 0 && d1 == 0 && d2 == 0) break;
                 }

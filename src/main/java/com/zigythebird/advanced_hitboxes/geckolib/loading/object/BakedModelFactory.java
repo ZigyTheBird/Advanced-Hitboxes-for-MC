@@ -33,8 +33,10 @@ import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.ModelProperti
 import com.zigythebird.advanced_hitboxes.geckolib.util.RenderUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
 
 import java.util.List;
 import java.util.Map;
@@ -104,7 +106,7 @@ public interface BakedModelFactory {
 		@Override
 		public HitboxGeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, HitboxGeoBone parent) {
 			Bone bone = boneStructure.self();
-			HitboxGeoBone newBone = new HitboxGeoBone(parent, bone.name());
+			HitboxGeoBone newBone = new HitboxGeoBone(parent, bone.name(), bone.inflate());
 			Vec3 rotation = RenderUtil.arrayToVec(bone.rotation());
 			Vec3 pivot = RenderUtil.arrayToVec(bone.pivot());
 
@@ -126,16 +128,98 @@ public interface BakedModelFactory {
 
 		@Override
 		public GeoCube constructCube(Cube cube, ModelProperties properties, HitboxGeoBone bone) {
-			Vec3 size = RenderUtil.arrayToVec(cube.size());
-			Vec3 origin = RenderUtil.arrayToVec(cube.origin());
-			Vec3 rotation = RenderUtil.arrayToVec(cube.rotation());
-			Vec3 pivot = RenderUtil.arrayToVec(cube.pivot());
+			boolean mirror = cube.mirror() == Boolean.TRUE;
+			double inflate = cube.inflate() != null ? cube.inflate() / 16f : (bone.getInflate() == null ? 0 : bone.getInflate() / 16f);
+			Vec3 size = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.size());
+			Vec3 origin = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.origin());
+			Vec3 rotation = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.rotation());
+			Vec3 pivot = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.pivot());
 			origin = new Vec3(-(origin.x + size.x) / 16d, origin.y / 16d, origin.z / 16d);
+			Vec3 vertexSize = size.multiply(1 / 16d, 1 / 16d, 1 / 16d);
 
 			pivot = pivot.multiply(-1, 1, 1);
 			rotation = new Vec3(Math.toRadians(-rotation.x), Math.toRadians(-rotation.y), Math.toRadians(rotation.z));
 
-			return new GeoCube(origin, pivot, rotation, size);
+			return new GeoCube(new VertexSet(origin, vertexSize, inflate), origin, pivot, rotation, size, inflate, mirror);
+		}
+	}
+
+	/**
+	 * Holder class to make it easier to store and refer to vertices for a given cube
+	 */
+	record VertexSet(Vector3d bottomLeftBack, Vector3d bottomRightBack, Vector3d topLeftBack, Vector3d topRightBack,
+					 Vector3d topLeftFront, Vector3d topRightFront, Vector3d bottomLeftFront, Vector3d bottomRightFront) {
+		public VertexSet(Vec3 origin, Vec3 vertexSize, double inflation) {
+			this(
+					new Vector3d(origin.x - inflation, origin.y - inflation, origin.z - inflation),
+					new Vector3d(origin.x - inflation, origin.y - inflation, origin.z + vertexSize.z + inflation),
+					new Vector3d(origin.x - inflation, origin.y + vertexSize.y + inflation, origin.z - inflation),
+					new Vector3d(origin.x - inflation, origin.y + vertexSize.y + inflation, origin.z + vertexSize.z + inflation),
+					new Vector3d(origin.x + vertexSize.x + inflation, origin.y + vertexSize.y + inflation, origin.z - inflation),
+					new Vector3d(origin.x + vertexSize.x + inflation, origin.y + vertexSize.y + inflation, origin.z + vertexSize.z + inflation),
+					new Vector3d(origin.x + vertexSize.x + inflation, origin.y - inflation, origin.z - inflation),
+					new Vector3d(origin.x + vertexSize.x + inflation, origin.y - inflation, origin.z + vertexSize.z + inflation));
+		}
+
+		/**
+		 * Returns the normal vertex array for a west-facing quad
+		 */
+		public Vector3d[] quadWest() {
+			return new Vector3d[] {this.topRightBack, this.topLeftBack, this.bottomLeftBack, this.bottomRightBack};
+		}
+
+		/**
+		 * Returns the normal vertex array for an east-facing quad
+		 */
+		public Vector3d[] quadEast() {
+			return new Vector3d[] {this.topLeftFront, this.topRightFront, this.bottomRightFront, this.bottomLeftFront};
+		}
+
+		/**
+		 * Returns the normal vertex array for a north-facing quad
+		 */
+		public Vector3d[] quadNorth() {
+			return new Vector3d[] {this.topLeftBack, this.topLeftFront, this.bottomLeftFront, this.bottomLeftBack};
+		}
+
+		/**
+		 * Returns the normal vertex array for a south-facing quad
+		 */
+		public Vector3d[] quadSouth() {
+			return new Vector3d[] {this.topRightFront, this.topRightBack, this.bottomRightBack, this.bottomRightFront};
+		}
+
+		/**
+		 * Returns the normal vertex array for a top-facing quad
+		 */
+		public Vector3d[] quadUp() {
+			return new Vector3d[] {this.topRightBack, this.topRightFront, this.topLeftFront, this.topLeftBack};
+		}
+
+		/**
+		 * Returns the normal vertex array for a bottom-facing quad
+		 */
+		public Vector3d[] quadDown() {
+			return new Vector3d[] {this.bottomLeftBack, this.bottomLeftFront, this.bottomRightFront, this.bottomRightBack};
+		}
+
+		public Vector3d[] allVertices() {
+			return new Vector3d[] {this.bottomLeftBack, this.bottomRightBack, this.topRightBack, topLeftBack,
+			this.bottomLeftFront, this.bottomRightFront, this.topRightFront, this.topLeftFront};
+		}
+
+		/**
+		 * Return the vertex array relevant to the quad being built, taking into account mirroring and quad type
+		 */
+		public Vector3d[] verticesForQuad(Direction direction, boolean boxUv, boolean mirror) {
+			return switch (direction) {
+				case WEST -> mirror ? quadEast() : quadWest();
+				case EAST -> mirror ? quadWest() : quadEast();
+				case NORTH -> quadNorth();
+				case SOUTH -> quadSouth();
+				case UP -> mirror && !boxUv ? quadDown() : quadUp();
+				case DOWN -> mirror && !boxUv ? quadUp() : quadDown();
+			};
 		}
 	}
 }

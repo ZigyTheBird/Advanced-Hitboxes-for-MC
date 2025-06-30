@@ -35,7 +35,7 @@ public class ExampleAdvancedHitboxEntity extends Mob implements AdvancedHitboxEn
     private final AdvancedHitboxInstanceCache hitbox_cache = HitboxModelUtil.createInstanceCache(this);
 
     @Override
-    public AdvancedHitboxInstanceCache advanced_hitboxes$getAnimatableInstanceCache() {
+    public AdvancedHitboxInstanceCache getHitboxInstanceCache() {
         return hitbox_cache;
     }
 
@@ -55,7 +55,7 @@ public class ExampleAdvancedHitboxEntity extends Mob implements AdvancedHitboxEn
     }
 
     @Override
-    public void applyTransformationsToBone(HitboxGeoBone bone, boolean animPlaying) {
+    public void applyTransformationsToBone(HitboxGeoBone bone) {
         if (Objects.equals(bone.getName(), "bone")) {
             bone.setRotY(Mth.DEG_TO_RAD * Mth.wrapDegrees(this.getYRot()));
         }

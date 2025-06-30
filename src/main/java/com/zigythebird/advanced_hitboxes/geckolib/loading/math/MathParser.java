@@ -43,6 +43,7 @@ import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.random.R
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.function.round.*;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.*;
 import com.zigythebird.advanced_hitboxes.geckolib.util.CompoundException;
+import com.zigythebird.playeranimatorapi.ModInit;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.Util;
 import org.jetbrains.annotations.NotNull;
@@ -121,9 +122,9 @@ public class MathParser {
      */
     public static void registerFunction(String name, MathFunction.Factory<?> factory) {
         if (FUNCTION_FACTORIES.put(name, factory) != null)
-            AdvancedHitboxesMod.LOGGER.warn("Duplicate registration of MathFunction: '" + name + "'. Ignore if intentional override");
+            ModInit.LOGGER.warn("Duplicate registration of MathFunction: '" + name + "'. Ignore if intentional override");
 
-        AdvancedHitboxesMod.LOGGER.debug("Registered MathFunction '" + name + "'");
+        ModInit.LOGGER.debug("Registered MathFunction '" + name + "'");
     }
 
     /**
@@ -142,10 +143,19 @@ public class MathParser {
     }
 
     /**
+     * Register a new {@link Variable} with the math parsing system
+     * <p>
+     * Technically supports overriding by matching keys, though you should try to update the existing variable instances instead if possible
+     */
+    public static void registerVariable(Variable variable) {
+        MolangQueries.registerVariable(variable);
+    }
+
+    /**
      * @return The registered {@link Variable} instance for the given name
      */
     public static Variable getVariableFor(String name) {
-        return null;
+        return MolangQueries.getVariableFor(name);
     }
 
     /**
@@ -244,11 +254,11 @@ public class MathParser {
             else if (character == ')') {
                 groupState--;
             }
-            
+
             if (groupState < 0)
                 throw new CompoundException("Closing parenthesis before opening parenthesis in expression '" + expression + "'");
         }
-        
+
         if (groupState != 0)
             throw new CompoundException("Uneven parenthesis in expression, each opening brace must have a pairing close brace '" + expression + "'");
 
@@ -566,24 +576,6 @@ public class MathParser {
     }
 
     /**
-     * @deprecated Has no functional use, see {@link Operator#isOperator(String)}
-     * @return Whether the given String should be considered an operator or operator-like symbol
-     */
-    @Deprecated(forRemoval = true)
-    public static boolean isOperativeSymbol(char symbol) {
-        return isOperativeSymbol(String.valueOf(symbol));
-    }
-
-    /**
-     * @deprecated Has no functional use, see {@link Operator#isOperator(String)}
-     * @return Whether the given String should be considered an operator or operator-like symbol
-     */
-    @Deprecated(forRemoval = true)
-    public static boolean isOperativeSymbol(@NotNull String symbol) {
-        return Operator.isOperator(symbol) || symbol.equals("?") || symbol.equals(":");
-    }
-
-    /**
      * Determine if the given string can be considered numeric, supporting both negative values and decimal values, but not strings omitting a preceding digit before a decimal point
      *
      * @return Whether the string is numeric
@@ -600,22 +592,14 @@ public class MathParser {
     }
 
     /**
-     * Determine if the given string is likely to be a variable/function of some kind.
-     * <p>
-     * Functionally this is just a confirmation-by-elimination check, since names don't really have a defined form
-     * @deprecated This is no longer used and isn't really a reliable check, try {@link #isFunctionRegistered(String)} or {@link #isLikelyVariable(String)}
-     */
-    @Deprecated(forRemoval = true)
-    protected static boolean isQueryOrFunctionName(String string) {
-        return !isNumeric(string) && !isOperativeSymbol(string);
-    }
-
-    /**
      * Determine if the given string is likely to be an existing or new variable declaration
      * <p>
-     * Functionally this is just a confirmation-by-elimination check, since names don't really have a defined form
+     * Functionally, this is just a confirmation-by-elimination check, since names don't really have a defined form
      */
     protected static boolean isLikelyVariable(String string) {
-        return false;
+        if (MolangQueries.isExistingVariable(string))
+            return true;
+
+        return !isNumeric(string) && !isFunctionRegistered(string) && !Operator.isOperator(string) && !string.equals("?") && !string.equals(":");
     }
 }

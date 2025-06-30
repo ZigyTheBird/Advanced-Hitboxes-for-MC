@@ -1,15 +1,31 @@
 package com.zigythebird.advanced_hitboxes.utils;
 
+import com.zigythebird.advanced_hitboxes.accessor.LivingEntityAccessor;
 import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
-import com.zigythebird.advanced_hitboxes.interfaces.TimerInterface;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class CommonSideUtils {
     public static float getTickDelta(Level level) {
         if (level.isClientSide) {
             return ClientUtils.getTickDelta();
         }
-        return ((TimerInterface) ServerLifecycleHooks.getCurrentServer()).advanced_hitboxes$timer().getGameTimeDeltaPartialTick(true);
+        return 0;
+    }
+
+    public static float getBodyYRot(LivingEntity entity) {
+        return ((LivingEntityAccessor)entity).advanced_Hitboxes$commonYBodyRot();
+    }
+
+    public static float getBodyYRot0(LivingEntity entity) {
+        return ((LivingEntityAccessor)entity).advanced_Hitboxes$commonYBodyRot0();
+    }
+
+    public static void setBodyYRot(LivingEntity entity, float rot) {
+        ((LivingEntityAccessor)entity).advanced_Hitboxes$setCommonYBodyRot(rot);
+    }
+
+    public static void setBodyYRot0(LivingEntity entity, float rot) {
+        ((LivingEntityAccessor)entity).advanced_Hitboxes$setCommonYBodyRot0(rot);
     }
 }

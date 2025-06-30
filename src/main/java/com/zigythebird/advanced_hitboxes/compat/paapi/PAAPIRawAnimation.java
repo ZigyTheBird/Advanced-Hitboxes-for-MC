@@ -1,4 +1,4 @@
-package com.zigythebird.advanced_hitboxes.compat;
+package com.zigythebird.advanced_hitboxes.compat.paapi;
 
 import com.zigythebird.advanced_hitboxes.geckolib.animation.PlayerRawAnimation;
 import com.zigythebird.playeranimatorapi.data.PlayerParts;
@@ -11,5 +11,6 @@ public class PAAPIRawAnimation extends PlayerRawAnimation {
         this.parts = parts;
     }
 
+    //TODO: implement
     public PlayerParts getParts() {return parts;}
 }

@@ -1,14 +1,18 @@
 package com.zigythebird.advanced_hitboxes;
 
 import com.zigythebird.advanced_hitboxes.command.TransformCommand;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.entity.ExampleAdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.network.MessageControlCar;
 import com.zigythebird.advanced_hitboxes.registry.ModEntities;
+import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -36,6 +40,13 @@ public class ModEvents {
         @SubscribeEvent
         public static void registerCommands(RegisterCommandsEvent event){
             TransformCommand.register(event.getDispatcher());
+        }
+
+        @SubscribeEvent
+        public static void entityTick(EntityTickEvent.Post event) {
+            if (event.getEntity() instanceof AdvancedHitboxEntity || event.getEntity() instanceof Player) {
+                HitboxUtils.tick(event.getEntity());
+            }
         }
     }
 }

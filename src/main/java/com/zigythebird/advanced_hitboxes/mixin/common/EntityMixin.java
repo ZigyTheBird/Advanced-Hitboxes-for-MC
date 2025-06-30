@@ -1,17 +1,13 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
+import com.zigythebird.advanced_hitboxes.accessor.EntityAccessor;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
-import com.zigythebird.advanced_hitboxes.mixin.accessors.EntityAccessor;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
 import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -32,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin implements EntityInterface {
+public abstract class EntityMixin implements EntityAccessor {
 
     @Shadow
     private static Vec3 collideWithShapes(Vec3 deltaMovement, AABB entityBB, List<VoxelShape> shapes) {
@@ -48,20 +44,7 @@ public abstract class EntityMixin implements EntityInterface {
     private void move(CallbackInfo ci) {
         Entity entity = ((Entity)(Object)this);
         if (entity instanceof AdvancedHitboxEntity advanced && advanced.useAdvancedHitboxesForCollision()) {
-            HitboxUtils.tick((Entity) advanced);
-            HitboxUtils.updateOrMakeHitboxesForEntity(advanced);
-        }
-    }
-
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void init(EntityType entityType, Level level, CallbackInfo ci) {
-        if (this instanceof AdvancedHitboxEntity || ((Entity)(Object)this) instanceof Player) {
-            if (AdvancedHitboxesMod.isIsDoneLoading()) {
-                HitboxUtils.updateOrMakeHitboxesForEntity(((AdvancedHitboxEntity) this));
-            }
-            else {
-                AdvancedHitboxesMod.addEntityToLoadingQueue(((AdvancedHitboxEntity) this));
-            }
+            HitboxUtils.tickAndUpdateHitboxesForEntity(advanced);
         }
     }
 
@@ -70,7 +53,7 @@ public abstract class EntityMixin implements EntityInterface {
         Entity entity = ((Entity)(Object)this);
         if (entity instanceof AdvancedHitboxEntity && ((AdvancedHitboxEntity) entity).useAdvancedHitboxesForCollision()) {
             VoxelShape voxelshape = state.getCollisionShape(entity.level(), pos, CollisionContext.of(entity));
-            VoxelShape voxelshape1 = voxelshape.move((double)pos.getX(), (double)pos.getY(), (double)pos.getZ());
+            VoxelShape voxelshape1 = voxelshape.move(pos.getX(), pos.getY(), pos.getZ());
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {
                 if (((AdvancedHitboxEntity) entity).useHitboxForCollision(hitbox.getName())) {
                     for (AABB aabb : voxelshape1.toAabbs()) {
@@ -119,7 +102,6 @@ public abstract class EntityMixin implements EntityInterface {
                 if (((AdvancedHitboxEntity) entity).useHitboxForCollision(hitbox.getName())) {
                     if (hitbox instanceof OBB obb) {
                         //Todo: Seems to work just fine but it doesn't hurt to look into this later.
-                        obb.updateScaledAxis();
                         aabbs.add(obb.toAABB().expandTowards(vec));
                     }
                     else if (hitbox instanceof AABB aabb) {
@@ -127,11 +109,20 @@ public abstract class EntityMixin implements EntityInterface {
                     }
                 }
             }
-            List<VoxelShape> list = new ArrayList<>();
-            for (AABB aabb : aabbs) {
+
+            //Todo: See whether this or the new method is more efficient.
+            //List<VoxelShape> list = new ArrayList<>();
+            //for (AABB aabb : aabbs) {
                 //Todo: Try and avoid duplicates in the list.
-                list.addAll(EntityAccessor.callCollectColliders(entity, level, potentialHits, aabb));
+                //list.addAll(com.zigythebird.advanced_hitboxes.mixin.accessors.EntityAccessor.callCollectColliders(entity, level, potentialHits, aabb));
+            //}
+
+            AABB mainAABB = null;
+            for (AABB aabb : aabbs) {
+                if (mainAABB == null) mainAABB = aabb;
+                else mainAABB = aabb.minmax(mainAABB);
             }
+            List<VoxelShape> list = mainAABB == null ? new ArrayList<>() : com.zigythebird.advanced_hitboxes.mixin.accessors.EntityAccessor.callCollectColliders(entity, level, potentialHits, mainAABB);
             Vec3 result = vec;
             boolean checkForZero = true;
             if (vec.equals(Vec3.ZERO)) checkForZero = false;

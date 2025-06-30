@@ -22,7 +22,7 @@ public class LevelRendererMixin {
     @Inject(method = "renderEntity", at = @At("TAIL"))
     private void inject(Entity entity, double camX, double camY, double camZ, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, CallbackInfo ci) {
         if (this.entityRenderDispatcher.shouldRenderHitBoxes() && !entity.isInvisible() && !Minecraft.getInstance().showOnlyReducedInfo()) {
-            AdvancedHitboxRenderer.renderAdvancedHitboxes(bufferSource.getBuffer(RenderType.lines()), entity, camX, camY, camZ);
+            AdvancedHitboxRenderer.renderAdvancedHitboxes(poseStack, bufferSource.getBuffer(RenderType.lines()), entity, camX, camY, camZ);
         }
     }
 }

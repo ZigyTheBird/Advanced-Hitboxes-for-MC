@@ -24,20 +24,10 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.util;
 
-import com.mojang.blaze3d.Blaze3D;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public class RenderUtil {
-    /**
-     * Returns the current time (in ticks) that the {@link org.lwjgl.glfw.GLFW GLFW} instance has been running
-     * <p>
-     * This is effectively a permanent timer that counts up since the game was launched.
-     */
-    public static double getCurrentTick() {
-        return Blaze3D.getTime() * 20d;
-    }
-
     /**
      * Special helper function for lerping yaw.
      * <p>

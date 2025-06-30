@@ -8,9 +8,11 @@ import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanc
 import com.zigythebird.advanced_hitboxes.geckolib.model.DefaultedEntityHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.util.HitboxModelUtil;
+import com.zigythebird.advanced_hitboxes.mixin.accessors.EntityAccessor;
 import com.zigythebird.advanced_hitboxes.network.MessageControlCar;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
+import com.zigythebird.advanced_hitboxes.phys.OBB;
+import com.zigythebird.advanced_hitboxes.utils.HitboxUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,9 +22,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -38,6 +38,8 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
     private static final HitboxModel<ExampleAdvancedHitboxEntity> hitboxModel = new DefaultedEntityHitboxModel<>(AdvancedHitboxesMod.id("transformer"));
 
     private float wheelRotation;
+    private boolean peaked;
+    private float peakedYRot;
 
     @OnlyIn(Dist.CLIENT)
     private boolean collidedLastTick;
@@ -77,10 +79,6 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
 
     public float getRotationModifier() {
         return 0.5F;
-    }
-
-    public float getPitch() {
-        return 0;
     }
 
     private static final EntityDataAccessor<Float> SPEED = SynchedEntityData.defineId(TransformerEntity.class, EntityDataSerializers.FLOAT);
@@ -130,56 +128,7 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
 
     @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity livingEntity) {
-        Direction direction = this.getMotionDirection();
-        if (direction.getAxis() == Direction.Axis.Y) {
-            return super.getDismountLocationForPassenger(livingEntity);
-        } else {
-            int[][] aint = DismountHelper.offsetsForDirection(direction);
-            BlockPos blockpos = this.blockPosition();
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-            ImmutableList<Pose> immutablelist = livingEntity.getDismountPoses();
-
-            for (Pose pose : immutablelist) {
-                EntityDimensions entitydimensions = livingEntity.getDimensions(pose);
-                float f = Math.min(entitydimensions.width(), 1.0F) / 2.0F;
-
-                for (int i : POSE_DISMOUNT_HEIGHTS.get(pose)) {
-                    for (int[] aint1 : aint) {
-                        blockpos$mutableblockpos.set(blockpos.getX() + aint1[0], blockpos.getY() + i, blockpos.getZ() + aint1[1]);
-                        double d0 = this.level()
-                                .getBlockFloorHeight(
-                                        DismountHelper.nonClimbableShape(this.level(), blockpos$mutableblockpos),
-                                        () -> DismountHelper.nonClimbableShape(this.level(), blockpos$mutableblockpos.below())
-                                );
-                        if (DismountHelper.isBlockFloorValid(d0)) {
-                            AABB aabb = new AABB(-f, 0.0, -f, f, entitydimensions.height(), f);
-                            Vec3 vec3 = Vec3.upFromBottomCenterOf(blockpos$mutableblockpos, d0);
-                            if (DismountHelper.canDismountTo(this.level(), livingEntity, aabb.move(vec3))) {
-                                livingEntity.setPose(pose);
-                                return vec3;
-                            }
-                        }
-                    }
-                }
-            }
-
-            double d1 = this.getBoundingBox().maxY;
-            blockpos$mutableblockpos.set(blockpos.getX(), d1, blockpos.getZ());
-
-            for (Pose pose1 : immutablelist) {
-                double d2 = (double)livingEntity.getDimensions(pose1).height();
-                int j = Mth.ceil(d1 - (double)blockpos$mutableblockpos.getY() + d2);
-                double d3 = DismountHelper.findCeilingFrom(
-                        blockpos$mutableblockpos, j, p_352844_ -> this.level().getBlockState(p_352844_).getCollisionShape(this.level(), p_352844_)
-                );
-                if (d1 + d2 <= d3) {
-                    livingEntity.setPose(pose1);
-                    break;
-                }
-            }
-
-            return super.getDismountLocationForPassenger(livingEntity);
-        }
+        return this.position().add(0, 0.1, 0);
     }
 
     @Override
@@ -201,8 +150,50 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
         updateGravity();
         controlCar();
 
-        move(MoverType.SELF, getDeltaMovement().scale(0.5));
-        move(MoverType.SELF, getDeltaMovement().scale(0.5));
+        Vec3 expectedPosition = this.position().add(getDeltaMovement());
+
+        move(MoverType.SELF, getDeltaMovement().scale(0.25));
+        move(MoverType.SELF, getDeltaMovement().scale(0.25));
+        move(MoverType.SELF, getDeltaMovement().scale(0.25));
+        move(MoverType.SELF, getDeltaMovement().scale(0.25));
+
+        Vec3 position = this.position();
+        float rotXOld = this.getXRot();
+        float rotYOld = this.getYRot();
+
+        if (this.getXRot() == 0 && this.peakedYRot != this.getYRot()) peaked = false;
+
+        if (!peaked && (position.x() != expectedPosition.x() || position.z() != expectedPosition.z())) {
+            if (!(Mth.abs(this.getXRot()) > 20)) {
+                if (isForward()) {
+                    this.setXRot(Mth.wrapDegrees(this.getXRot() + 4));
+                } else if (isBackward()) {
+                    this.setXRot(Mth.wrapDegrees(this.getXRot() - 4));
+                }
+            }
+            else {
+                peaked = true;
+                peakedYRot = this.getYRot();
+            }
+        }
+        else if (Math.abs(this.getXRot()) > 0) {
+            this.setXRot(this.getXRot() + Math.signum(this.getXRot()) * -4);
+            if (this.getXRot() == 0 && peakedYRot != this.getYRot()) peaked = false;
+        }
+
+        controlCarRotation();
+
+        if (this.getYRot() != rotYOld || this.getXRot() != rotXOld) {
+            HitboxUtils.tickAndUpdateHitboxesForEntity(this);
+
+            Vec3 vec3 = ((EntityAccessor) this).callCollide(Vec3.ZERO);
+            double d0 = vec3.lengthSqr();
+            if (d0 > 1.0E-7) {
+                this.setPos(this.getX() + vec3.x, this.getY() + vec3.y, this.getZ() + vec3.z);
+            }
+        }
+
+
 
         updateWheelRotation();
     }
@@ -210,7 +201,6 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
     private void tickLerp() {
         if (this.isControlledByLocalInstance()) {
             this.steps = 0;
-            this.syncPacketPositionCodec(this.getX(), this.getY(), this.getZ());
         }
 
         if (this.steps > 0) {
@@ -280,7 +270,21 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
 
         setSpeed(speed);
 
+        if (horizontalCollision) {
+            if (level().isClientSide && !collidedLastTick) {
+//                onCollision(speed);
+                collidedLastTick = true;
+            }
+        } else {
+            setDeltaMovement(calculateMotionX(getSpeed(), getYRot()), getDeltaMovement().y, calculateMotionZ(getSpeed(), getYRot()));
+            if (level().isClientSide) {
+                collidedLastTick = false;
+            }
+        }
+    }
 
+    private void controlCarRotation() {
+        float speed = getSpeed();
         float rotationSpeed = 0;
         if (Math.abs(speed) > 0.02F) {
             rotationSpeed = Mth.abs(getRotationModifier() / (float) Math.pow(speed, 2));
@@ -310,18 +314,6 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
         while (getYRot() <= -180F) {
             setYRot(getYRot() + 360F);
             yRotO = delta + getYRot();
-        }
-
-        if (horizontalCollision) {
-            if (level().isClientSide && !collidedLastTick) {
-//                onCollision(speed);
-                collidedLastTick = true;
-            }
-        } else {
-            setDeltaMovement(calculateMotionX(getSpeed(), getYRot()), getDeltaMovement().y, calculateMotionZ(getSpeed(), getYRot()));
-            if (level().isClientSide) {
-                collidedLastTick = false;
-            }
         }
     }
 
@@ -366,7 +358,7 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
     private final AdvancedHitboxInstanceCache hitbox_cache = HitboxModelUtil.createInstanceCache(this);
 
     @Override
-    public AdvancedHitboxInstanceCache advanced_hitboxes$getAnimatableInstanceCache() {
+    public AdvancedHitboxInstanceCache getHitboxInstanceCache() {
         return hitbox_cache;
     }
 
@@ -482,9 +474,10 @@ public class TransformerEntity extends Entity implements AdvancedHitboxEntity, G
     }
 
     @Override
-    public void applyTransformationsToBone(HitboxGeoBone bone, boolean animPlaying) {
+    public void applyTransformationsToBone(HitboxGeoBone bone) {
         if (Objects.equals(bone.getName(), "root")) {
             bone.setRotY(Mth.DEG_TO_RAD * -this.getYRot());
+            bone.setRotX(Mth.DEG_TO_RAD * this.getXRot());
         }
     }
 }

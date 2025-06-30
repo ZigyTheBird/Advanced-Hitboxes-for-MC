@@ -26,6 +26,7 @@ package com.zigythebird.advanced_hitboxes.geckolib.model;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
 import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationProcessor;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
@@ -38,8 +39,6 @@ import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathParser;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.Variable;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedAnimations;
-import com.zigythebird.advanced_hitboxes.geckolib.util.RenderUtil;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -156,11 +155,11 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 	 */
 	@ApiStatus.Internal
 	public void handleAnimations(T animatable, long instanceId, AnimationState<T> animationState, float partialTick) {
-		HitboxAnimatableManager<T> animatableManager = animatable.advanced_hitboxes$getAnimatableInstanceCache().getManagerForId(instanceId);
+		HitboxAnimatableManager<T> animatableManager = animatable.getHitboxInstanceCache().getManagerForId(instanceId);
 		Double currentTick = animationState.getData(DataTickets.TICK);
 
 		if (currentTick == null)
-			currentTick = animatable instanceof Entity entity ? (double)entity.tickCount : RenderUtil.getCurrentTick();
+			currentTick = animatable instanceof Entity entity ? (double)entity.tickCount : null;
 
 		if (animatableManager.getFirstTickTime() == -1)
 			animatableManager.startedAt(currentTick + partialTick);
@@ -172,7 +171,7 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 			return;
 
 		boolean paused = false;
-		if (((Entity)animatable).level().isClientSide || ServerLifecycleHooks.getCurrentServer().isSingleplayer()) {
+		if (ServerLifecycleHooks.getCurrentServer().isSingleplayer()) {
 			paused = ClientUtils.isGamePaused();
 		}
 		if (!paused || animatable.advanced_hitboxes$shouldPlayAnimsWhileGamePaused()) {
@@ -187,7 +186,7 @@ public abstract class HitboxModel<T extends AdvancedHitboxEntity> {
 		this.lastRenderedInstance = instanceId;
 		AnimationProcessor<T> processor = getAnimationProcessor();
 
-		processor.preAnimationSetup(animationState, this.animTime);
+		processor.preAnimationSetup(animationState, this.animTime, ((Entity)animatable).level());
 
 		if (!processor.getRegisteredBones().isEmpty())
 			processor.tickAnimation(animatable, this, animatableManager, this.animTime, animationState, crashIfBoneMissing());

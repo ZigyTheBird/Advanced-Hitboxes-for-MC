@@ -24,9 +24,9 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -52,12 +52,12 @@ public class HitboxAnimatableManager<T extends AdvancedHitboxEntity> {
 	private double firstTickTime = -1;
 
 	/**
-	 * Instantiates a new AnimatableManager for the given animatable, calling {@link AdvancedHitboxEntity#advanced_hitboxes$registerControllers} to define its controllers
+	 * Instantiates a new AnimatableManager for the given animatable, calling {@link AdvancedHitboxEntity#registerHitboxControllers} to define its controllers
 	 */
 	public HitboxAnimatableManager(AdvancedHitboxEntity animatable) {
 		ControllerRegistrar registrar = new ControllerRegistrar(new ObjectArrayList<>(2));
 
-		animatable.advanced_hitboxes$registerControllers(registrar);
+		animatable.registerHitboxControllers(registrar);
 
 		this.animationControllers = registrar.build();
 	}
@@ -65,7 +65,7 @@ public class HitboxAnimatableManager<T extends AdvancedHitboxEntity> {
 	/**
 	 * Add an {@link HitboxAnimationController} to this animatable's manager
 	 * <p>
-	 * Generally speaking you probably should have added it during {@link AdvancedHitboxEntity#advanced_hitboxes$registerControllers}
+	 * Generally speaking you probably should have added it during {@link AdvancedHitboxEntity#registerHitboxControllers}
 	 */
 	public void addController(HitboxAnimationController controller) {
 		getAnimationControllers().put(controller.getName(), controller);

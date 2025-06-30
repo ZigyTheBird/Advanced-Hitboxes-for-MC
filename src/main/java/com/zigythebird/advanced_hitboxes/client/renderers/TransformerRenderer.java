@@ -59,5 +59,6 @@ public class TransformerRenderer extends GeoEntityRenderer<TransformerEntity> {
         bone.setScaleZ(0);
 
         poseStack.mulPose(Axis.YP.rotationDegrees(-animatable.getYRot()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-animatable.getXRot()));
     }
 }

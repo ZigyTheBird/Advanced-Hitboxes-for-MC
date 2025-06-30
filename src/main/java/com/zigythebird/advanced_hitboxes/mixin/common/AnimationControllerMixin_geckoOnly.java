@@ -20,7 +20,7 @@ public class AnimationControllerMixin_geckoOnly<T extends GeoAnimatable> {
     @Inject(method = "tryTriggerAnimation", at = @At("TAIL"))
     private void tryTriggerAnimation(String animName, CallbackInfoReturnable<Boolean> cir) {
         if (this.animatable instanceof AdvancedHitboxEntity) {
-            ((AdvancedHitboxEntity)this.animatable).advanced_hitboxes$getAnimatableInstanceCache().getManagerForId(((Entity)this.animatable).getId()).tryTriggerAnimation(this.name, animName);
+            ((AdvancedHitboxEntity)this.animatable).getHitboxInstanceCache().getManagerForId(((Entity)this.animatable).getId()).tryTriggerAnimation(this.name, animName);
         }
     }
 }

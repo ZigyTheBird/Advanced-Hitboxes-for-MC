@@ -24,6 +24,7 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.*;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event.data.KeyFrameData;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
@@ -31,7 +32,6 @@ import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MathValue;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.math.value.Constant;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Direction.Axis;

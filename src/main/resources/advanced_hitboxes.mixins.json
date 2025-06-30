@@ -13,14 +13,16 @@
     "accessors.MinecraftServerAccessor",
     "common.AABBMixin",
     "common.AnimationControllerMixin_geckoOnly",
-    "common.BlockableEventLoopMixin",
+    "common.BodyRotationControlMixin",
     "common.EntityMixin",
     "common.EntityTypeMixin",
     "common.LivingEntityMixin",
-    "common.MinecraftServerMixin",
     "common.PlayerAnimAPIMixin_playeranimatorapiOnly",
     "common.PlayerMixin",
-    "common.ProjectileUtilMixin"
+    "common.ProjectileUtilMixin",
+    "common.ServerGamePacketListenerMixin",
+    "common.SmoothSwimmingLookControlMixin",
+    "common.SmoothSwimmingMoveControlMixin"
   ],
   "injectors": {
     "defaultRequire": 1

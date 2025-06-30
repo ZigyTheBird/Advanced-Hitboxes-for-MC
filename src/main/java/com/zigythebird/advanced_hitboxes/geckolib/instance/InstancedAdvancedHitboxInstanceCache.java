@@ -24,9 +24,9 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.instance;
 
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimatableManager;
 import com.zigythebird.advanced_hitboxes.geckolib.util.HitboxModelUtil;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 
 /**
  * AnimatableInstanceCache implementation for instantiated objects such as Entities or BlockEntities. Returns a single {@link HitboxAnimatableManager} instance per cache

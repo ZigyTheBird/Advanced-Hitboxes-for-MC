@@ -47,6 +47,8 @@ public class HitboxGeoBone {
 	private final List<HitboxGeoBone> children = new ObjectArrayList<>();
 	private final List<GeoCube> cubes = new ObjectArrayList<>();
 
+	private final Double inflate;
+
 	private BoneSnapshot initialSnapshot;
 
 	private float scaleX = 1;
@@ -77,7 +79,7 @@ public class HitboxGeoBone {
 
 	public String hitboxType = null;
 
-	public HitboxGeoBone(@Nullable HitboxGeoBone parent, String name) {
+	public HitboxGeoBone(@Nullable HitboxGeoBone parent, String name, @Nullable Double inflate) {
 		this.parent = parent;
 		this.name = name;
 		this.trackingMatrices = false;
@@ -86,6 +88,7 @@ public class HitboxGeoBone {
 		this.worldSpaceMatrix.identity();
 		this.localSpaceMatrix.identity();
 		this.modelSpaceMatrix.identity();
+		this.inflate = inflate;
 	}
 
 	public String getName() {
@@ -275,6 +278,10 @@ public class HitboxGeoBone {
 	public void saveInitialSnapshot() {
 		if (this.initialSnapshot == null)
 			this.initialSnapshot = saveSnapshot();
+	}
+
+	public Double getInflate() {
+		return this.inflate;
 	}
 
 	public List<GeoCube> getCubes() {

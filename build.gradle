@@ -36,12 +36,22 @@ neoForge {
     parchment {
         mappingsVersion = project.parchment_mappings_version
         minecraftVersion = project.parchment_minecraft_version
+
+        accessTransformers = project.files('src/main/resources/accesstransformer.cfg')
     }
 
     runs {
         client {
             client()
 
+            programArguments.addAll '--username', 'Dev'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        client2 {
+            client()
+
+            programArguments.addAll '--username', 'Dev2'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -72,13 +82,7 @@ configurations {
 dependencies {
     jarJar(implementation "com.zigythebird.old_fabric_networking:old_fabric_like_networking-neoforge-1.21:1.0.0")
 
-    implementation ("com.zigythebird.playeranimatorapi:playeranimatorapi-neoforge-1.21:$project.playeranimapi_version", {
-        exclude group: "software.bernie.geckolib"
-        exclude group: "com.github.Virtuoel"
-        exclude group: "mod.azure.azurelib"
-        exclude group: "com.eliotlash.mclib"
-        exclude group: "maven.modrinth"
-    })
+    implementation "com.zigythebird.playeranimatorapi:playeranimatorapi-neoforge-1.21:$project.playeranimapi_version"
 
     implementation "software.bernie.geckolib:geckolib-neoforge-1.21:${geckolib_version}"
 }

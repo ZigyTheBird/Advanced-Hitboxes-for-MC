@@ -1,13 +1,13 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.*;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.model.DefaultedEntityHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.util.HitboxModelUtil;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.utils.PlayerHitboxProcessor;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,15 +34,15 @@ public abstract class PlayerMixin extends LivingEntity implements AdvancedHitbox
     private final AdvancedHitboxInstanceCache advanced_Hitboxes$hitbox_cache = HitboxModelUtil.createInstanceCache(this);
 
     @Override
-    public AdvancedHitboxInstanceCache advanced_hitboxes$getAnimatableInstanceCache() {
+    public AdvancedHitboxInstanceCache getHitboxInstanceCache() {
         return advanced_Hitboxes$hitbox_cache;
     }
 
     @Override
-    public void advanced_hitboxes$registerControllers(HitboxAnimatableManager.ControllerRegistrar controllers) {
+    public void registerHitboxControllers(HitboxAnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new HitboxAnimationController<>(this, 0, state -> PlayState.STOP)
                 .setAnimationSpeedHandler((player) -> {
-                    RawAnimation animation = this.advanced_hitboxes$getAnimatableInstanceCache().getManagerForId(this.getId()).getAnimationControllers().get("base_controller").getCurrentRawAnimation();
+                    RawAnimation animation = this.getHitboxInstanceCache().getManagerForId(this.getId()).getAnimationControllers().get("base_controller").getCurrentRawAnimation();
                     if (animation instanceof PlayerRawAnimation) {
                         return ((PlayerRawAnimation)animation).getSpeed();
                     }
@@ -52,7 +52,8 @@ public abstract class PlayerMixin extends LivingEntity implements AdvancedHitbox
                 }));
     }
 
-    public void applyTransformationsToBone(HitboxGeoBone bone, boolean animPlaying) {
+    @Override
+    public void applyTransformationsToBone(HitboxGeoBone bone) {
         PlayerHitboxProcessor.tickAnimation((Player)(Object)this, bone);
     }
 }

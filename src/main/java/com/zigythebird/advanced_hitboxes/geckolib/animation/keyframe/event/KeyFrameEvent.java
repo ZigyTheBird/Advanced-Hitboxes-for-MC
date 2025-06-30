@@ -24,10 +24,10 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event;
 
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.Keyframe;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.event.data.KeyFrameData;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 /**
  * The base class for {@link Keyframe} events
  * <p>

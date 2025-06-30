@@ -6,10 +6,10 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3d;
-import org.joml.Quaterniond;
+import org.joml.Matrix3f;
 import org.joml.Vector2d;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,68 +22,87 @@ public class OBB implements AdvancedHitbox {
     private final String name;
 
     public Vec3 center;
-    public Vector3d rotation;
-    public Vec3 size;
-
     public Vec3 extent;
-    public Matrix3d orientation;
-    public Vec3 axisX;
-    public Vec3 axisY;
-    public Vec3 axisZ;
-    public Vec3 scaledAxisX;
-    public Vec3 scaledAxisY;
-    public Vec3 scaledAxisZ;
-    public Vec3 vertex1;
-    public Vec3 vertex2;
-    public Vec3 vertex3;
-    public Vec3 vertex4;
-    public Vec3 vertex5;
-    public Vec3 vertex6;
-    public Vec3 vertex7;
-    public Vec3 vertex8;
+    public Matrix3f orientation;
     public Vec3[] vertices;
 
-    public OBB(String name, Vec3 center, Vec3 size, Vector3d rotation) {
+    public OBB(String name, Vec3[] vertices, Vec3 extent, Matrix3f orientation) {
         this.name = name;
-        this.center = center;
-        this.size = size;
-        this.extent = new Vec3(size.x/2, size.y/2, size.z/2);
-        this.rotation = rotation;
-        calculateOrientation();
+        this.vertices = vertices;
+        
+        Vector3d center = new Vector3d();
+        for (Vec3 vec3 : vertices) {
+            center.add(vec3.x(), vec3.y(), vec3.z());
+        }
+        center.div(8);
+        this.center = ModMath.vector3dToVec3(center);
+        
+        this.extent = extent;
+        this.orientation = new Matrix3f(Math.abs(orientation.m00), Math.abs(orientation.m01), Math.abs(orientation.m02),
+                Math.abs(orientation.m10), Math.abs(orientation.m11), Math.abs(orientation.m12),
+                Math.abs(orientation.m20), Math.abs(orientation.m21), Math.abs(orientation.m22));
     }
 
-    public OBB(String name, Vec3 center, double xSize, double ySize, double zSize, double xRot, double yRot, double zRot) {
-        this(name, center, new Vec3(xSize, ySize, zSize), new Vector3d(xRot, yRot, zRot));
+    public OBB(AABB box) {
+        this(null, box);
     }
 
     public OBB(String name, AABB box) {
-        this(name, box.getCenter(), new Vec3(box.getXsize(), box.getYsize(), box.getZsize()), new Vector3d(0, 0, 0));
+        this.name = name;
+        this.center = box.getCenter();
+        this.extent = new Vec3(box.getXsize()/2, box.getYsize()/2, box.getZsize()/2);
+        this.orientation = new Matrix3f();
+        
+        Vec3 scaledAxisX = new Vec3(1, 0, 0).scale(extent.x);
+        Vec3 scaledAxisY = new Vec3(0, 1, 0).scale(extent.y);
+        Vec3 scaledAxisZ = new Vec3(0, 0, 1).scale(extent.z);
+        Vec3 vertex1 = center.subtract(scaledAxisZ).subtract(scaledAxisX).subtract(scaledAxisY); //bottom left back
+        Vec3 vertex2 = center.subtract(scaledAxisZ).add(scaledAxisX).subtract(scaledAxisY); //bottom right back
+        Vec3 vertex3 = center.subtract(scaledAxisZ).add(scaledAxisX).add(scaledAxisY); //top right back
+        Vec3 vertex4 = center.subtract(scaledAxisZ).subtract(scaledAxisX).add(scaledAxisY); //top left back
+        Vec3 vertex5 = center.add(scaledAxisZ).subtract(scaledAxisX).subtract(scaledAxisY); //bottom left front
+        Vec3 vertex6 = center.add(scaledAxisZ).add(scaledAxisX).subtract(scaledAxisY); //bottom right front
+        Vec3 vertex7 = center.add(scaledAxisZ).add(scaledAxisX).add(scaledAxisY); //top right front
+        Vec3 vertex8 = center.add(scaledAxisZ).subtract(scaledAxisX).add(scaledAxisY); //top left front
+        vertices = new Vec3[]{vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex7, vertex8};
     }
 
     public OBB(String name, OBB obb) {
-        this(name, obb.center, obb.size, new Vector3d(obb.rotation));
+        this.name = name;
+        this.center = obb.center;
+        this.extent = obb.extent;
+        this.orientation = new Matrix3f(obb.orientation);
+        this.vertices = obb.vertices.clone();
     }
 
     public OBB(OBB obb) {
         this(obb.name, obb);
     }
 
-    public void update(Vec3 center, Vec3 size, Vector3d rotation) {
-        this.center = center;
-        this.size = size;
-        this.rotation = rotation;
-        this.extent = new Vec3(size.x/2, size.y/2, size.z/2);
-        calculateOrientation();
-    }
+    public void update(Vec3[] vertices, Vec3 extent, Matrix3f orientation) {
+        this.vertices = vertices;
 
-    public OBB inflate(double x, double y, double z) {
-        this.size = new Vec3(this.size.x + (x * 2), this.size.y + (y * 2), this.size.z + (z * 2));
-        this.extent = this.size.scale(0.5);
-        return this;
+        Vector3d center = new Vector3d();
+        for (Vec3 vec3 : vertices) {
+            center.add(vec3.x(), vec3.y(), vec3.z());
+        }
+        center.div(8);
+        this.center = ModMath.vector3dToVec3(center);
+
+        this.extent = extent;
+        this.orientation = new Matrix3f(Math.abs(orientation.m00), Math.abs(orientation.m01), Math.abs(orientation.m02),
+                Math.abs(orientation.m10), Math.abs(orientation.m11), Math.abs(orientation.m12),
+                Math.abs(orientation.m20), Math.abs(orientation.m21), Math.abs(orientation.m22));
     }
 
     public OBB inflate(double value) {
-        return this.inflate(value, value, value);
+        this.extent = this.extent.add(value, value, value);
+        Vec3[] newVertices = new Vec3[8];
+        for (int i=0; i<8; i++) {
+            newVertices[i] = vertices[i].add(vertices[i].subtract(center).normalize().scale(value));
+        }
+        vertices = newVertices;
+        return this;
     }
 
     public OBB copy() {
@@ -97,99 +116,80 @@ public class OBB implements AdvancedHitbox {
     }
 
     public OBB offset(Vec3 offset) {
-        this.center = this.center.add(offset);
-        return this;
+        return this.offset(offset.x(), offset.y(), offset.z());
     }
 
     public OBB offset(double offsetX, double offsetY, double offsetZ) {
         this.center = this.center.add(offsetX, offsetY, offsetZ);
+        Vec3[] newVertices = new Vec3[8];
+        for (int i=0; i<8; i++) {
+            Vec3 vec3 = vertices[i];
+            newVertices[i] = new Vec3(vec3.x() + offsetX, vec3.y() + offsetY, vec3.z() + offsetZ);
+        }
+        vertices = newVertices;
         return this;
     }
 
     public OBB scale(double scale) {
-        this.size = this.size.scale(scale);
-        this.extent = this.size.scale(0.5);
+        this.extent = this.extent.scale(scale);
+        Vec3[] newVertices = new Vec3[8];
+        for (int i=0; i<8; i++) {
+            Vec3 vec3 = vertices[i].subtract(center);
+            newVertices[i] = new Vec3(vec3.x() * scale + center.x(), vec3.y() * scale + center.y(), vec3.z() * scale + center.z());
+        }
+        vertices = newVertices;
         return this;
     }
 
-    /**
-     * You need to run this after changing the rotation for most methods to work.
-     */
-    public void calculateOrientation() {
-        orientation = new Matrix3d();
-        new Quaterniond().rotationXYZ(rotation.x, rotation.y, rotation.z).get(orientation);
-        Vector3d axisXTemp = new Vector3d();
-        Vector3d axisYTemp = new Vector3d();
-        Vector3d axisZTemp = new Vector3d();
-        orientation.getColumn(0, axisXTemp);
-        orientation.getColumn(1, axisYTemp);
-        orientation.getColumn(2, axisZTemp);
-        axisX = ModMath.vector3dToVec3(axisXTemp.absolute());
-        axisY = ModMath.vector3dToVec3(axisYTemp.absolute());
-        axisZ = ModMath.vector3dToVec3(axisZTemp.absolute());
-    }
-
-    /**
-     * You need to run for some methods to work.
-     */
-    public OBB updateScaledAxis() {
-        this.scaledAxisX = axisX.scale(this.extent.x);
-        this.scaledAxisY = axisY.scale(this.extent.y);
-        this.scaledAxisZ = axisZ.scale(this.extent.z);
-        return this;
-    }
-
-    /**
-     * You need to run this for some methods to work.
-     */
-    public OBB updateVertex() {
-        this.scaledAxisX = axisX.scale(this.extent.x);
-        this.scaledAxisY = axisY.scale(this.extent.y);
-        this.scaledAxisZ = axisZ.scale(this.extent.z);
-        this.vertex1 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY); //bottom left back
-        this.vertex2 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY); //bottom right back
-        this.vertex3 = this.center.subtract(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY); //top right back
-        this.vertex4 = this.center.subtract(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY); //top left back
-        this.vertex5 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).subtract(this.scaledAxisY); //bottom left front
-        this.vertex6 = this.center.add(this.scaledAxisZ).add(this.scaledAxisX).subtract(this.scaledAxisY); //bottom right front
-        this.vertex7 = this.center.add(this.scaledAxisZ).add(this.scaledAxisX).add(this.scaledAxisY); //top right front
-        this.vertex8 = this.center.add(this.scaledAxisZ).subtract(this.scaledAxisX).add(this.scaledAxisY); //top left front
-        this.vertices = new Vec3[]{this.vertex1, this.vertex2, this.vertex3, this.vertex4, this.vertex5, this.vertex6, this.vertex7, this.vertex8};
-        return this;
-    }
-
-
-    /**
-     * You need to run the updateScaledAxis or updateVertex method for this to work.
-     */
     public Vec3 getMaxVertex() {
-        return this.center.add(Math.abs(this.scaledAxisZ.x) + Math.abs(this.scaledAxisX.x) + Math.abs(this.scaledAxisY.x),
-                Math.abs(this.scaledAxisZ.y) + Math.abs(this.scaledAxisX.y) + Math.abs(this.scaledAxisY.y),
-                Math.abs(this.scaledAxisZ.z) + Math.abs(this.scaledAxisX.z) + Math.abs(this.scaledAxisY.z));
+        Vec3 scaledAxisX = getAxisX().scale(extent.x);
+        Vec3 scaledAxisY = getAxisY().scale(extent.y);
+        Vec3 scaledAxisZ = getAxisZ().scale(extent.z);
+        return this.center.add(scaledAxisZ.x + scaledAxisX.x + scaledAxisY.x,
+                scaledAxisZ.y + scaledAxisX.y + scaledAxisY.y,
+                scaledAxisZ.z + scaledAxisX.z + scaledAxisY.z);
     }
 
-    /**
-     * You need to run the updateScaledAxis or updateVertex method for this to work.
-     */
     public Vec3 getMinVertex() {
-        return this.center.subtract(Math.abs(this.scaledAxisZ.x) + Math.abs(this.scaledAxisX.x) + Math.abs(this.scaledAxisY.x),
-                        Math.abs(this.scaledAxisZ.y) + Math.abs(this.scaledAxisX.y) + Math.abs(this.scaledAxisY.y),
-                        Math.abs(this.scaledAxisZ.z) + Math.abs(this.scaledAxisX.z) + Math.abs(this.scaledAxisY.z));
+        Vec3 scaledAxisX = getAxisX().scale(extent.x);
+        Vec3 scaledAxisY = getAxisY().scale(extent.y);
+        Vec3 scaledAxisZ = getAxisZ().scale(extent.z);
+        return this.center.subtract(scaledAxisZ.x + scaledAxisX.x + scaledAxisY.x,
+                        scaledAxisZ.y + scaledAxisX.y + scaledAxisY.y,
+                        scaledAxisZ.z + scaledAxisX.z + scaledAxisY.z);
     }
 
     @Override
     public @NotNull String getName() {
         return name;
     }
+    
+    public Vec3 getAxisX() {
+        Vector3f axis = new Vector3f();
+        orientation.getColumn(0, axis);
+        return ModMath.vector3fToVec3(axis);
+    }
+
+    public Vec3 getAxisY() {
+        Vector3f axis = new Vector3f();
+        orientation.getColumn(1, axis);
+        return ModMath.vector3fToVec3(axis);
+    }
+
+    public Vec3 getAxisZ() {
+        Vector3f axis = new Vector3f();
+        orientation.getColumn(2, axis);
+        return ModMath.vector3fToVec3(axis);
+    }
 
     public boolean contains(Vec3 point) {
         Vec3 dir = point.subtract(this.center);
 
         for (int i = 0; i < 3; ++i) {
-		    Vector3d axis = new Vector3d();
+		    Vector3f axis = new Vector3f();
             orientation.getColumn(i, axis);
 
-            double distance = dir.dot(ModMath.vector3dToVec3(axis));
+            double distance = dir.dot(ModMath.vector3fToVec3(axis));
 
             double size = extent.x;
             switch (i) {
@@ -210,6 +210,9 @@ public class OBB implements AdvancedHitbox {
 
     public RaycastResult raycast(Vec3 origin, Vec3 direction) {
         Vec3 p = center.subtract(origin);
+        Vec3 axisX = getAxisX();
+        Vec3 axisY = getAxisY();
+        Vec3 axisZ = getAxisZ();
         Vec3 f = new Vec3(axisX.dot(direction), axisY.dot(direction), axisZ.dot(direction));
         Vec3 e = new Vec3(axisX.dot(p), axisY.dot(p), axisZ.dot(p));
 
@@ -286,15 +289,12 @@ public class OBB implements AdvancedHitbox {
     public static OBBIntersectResult intersects(OBB a, OBB b) {
         List<Vector3d> test = new ArrayList<>();
 
-        a.updateVertex();
-        b.updateVertex();
-
-        test.add(new Vector3d(a.axisX.x, a.axisX.y, a.axisX.z));
-        test.add(new Vector3d(a.axisY.x, a.axisY.y, a.axisY.z));
-        test.add(new Vector3d(a.axisY.x, a.axisY.y, a.axisY.z));
-        test.add(new Vector3d(b.axisX.x, b.axisX.y, b.axisX.z));
-        test.add(new Vector3d(b.axisY.x, b.axisY.y, b.axisY.z));
-        test.add(new Vector3d(b.axisZ.x, b.axisZ.y, b.axisZ.z));
+        test.add(new Vector3d(a.getAxisX().x, a.getAxisX().y, a.getAxisX().z));
+        test.add(new Vector3d(a.getAxisY().x, a.getAxisY().y, a.getAxisY().z));
+        test.add(new Vector3d(a.getAxisY().x, a.getAxisY().y, a.getAxisY().z));
+        test.add(new Vector3d(b.getAxisX().x, b.getAxisX().y, b.getAxisX().z));
+        test.add(new Vector3d(b.getAxisY().x, b.getAxisY().y, b.getAxisY().z));
+        test.add(new Vector3d(b.getAxisZ().x, b.getAxisZ().y, b.getAxisZ().z));
 
         for (int i = 0; i < 3; ++i) { // Fill out rest of axis
             test.add(6 + i * 3, test.get(i).cross(test.get(0)));
@@ -332,8 +332,6 @@ public class OBB implements AdvancedHitbox {
     }
 
     /**
-     * The updateVertex method must have been called in order for this method to work.
-     * <p>
      * In the resulting vector:
      * x = min
      * y = max

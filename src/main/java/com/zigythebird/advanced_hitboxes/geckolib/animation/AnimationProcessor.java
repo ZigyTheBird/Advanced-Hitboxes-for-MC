@@ -25,15 +25,17 @@
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.AnimationPoint;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.keyframe.BoneAnimationQueue;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.loading.math.MolangQueries;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 
 import java.util.*;
 
@@ -106,23 +108,6 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 
 			state.withController(controller);
 			controller.process(model, state, this.bones, boneSnapshots, animTime, crashWhenCantFindBone);
-
-			if (controller.currentAnimation == null) {
-				for (HitboxGeoBone bone : this.bones.values()) {
-					animatable.applyTransformationsToBone(bone, false);
-				}
-			}
-			else {
-				List<HitboxGeoBone> bonesWithAnimation = new ArrayList<>();
-				for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues().values()) {
-					bonesWithAnimation.add(boneAnimation.bone());
-				}
-				for (HitboxGeoBone bone : this.bones.values()) {
-					if (!bonesWithAnimation.contains(bone)) {
-						animatable.applyTransformationsToBone(bone, true);
-					}
-				}
-			}
 
 			for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues().values()) {
 				HitboxGeoBone bone = boneAnimation.bone();
@@ -302,7 +287,8 @@ public class AnimationProcessor<T extends AdvancedHitboxEntity> {
 	/**
 	 * Apply transformations and settings prior to acting on any animation-related functionality
 	 */
-	public void preAnimationSetup(AnimationState<T> animationState, double animTime) {
+	public void preAnimationSetup(AnimationState<T> animationState, double animTime, Level level) {
+		MolangQueries.updateActor(animationState, animTime, level);
 		this.model.applyMolangQueries(animationState, animTime);
 	}
 

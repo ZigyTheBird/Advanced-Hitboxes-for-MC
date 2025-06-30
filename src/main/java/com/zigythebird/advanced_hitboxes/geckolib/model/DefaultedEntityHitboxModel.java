@@ -24,11 +24,11 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.model;
 
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 

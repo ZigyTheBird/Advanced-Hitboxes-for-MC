@@ -1,7 +1,6 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
-import com.zigythebird.advanced_hitboxes.interfaces.AABBInterface;
-import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
+import com.zigythebird.advanced_hitboxes.accessor.AABBAccessor;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -13,7 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.Optional;
 
 @Mixin(AABB.class)
-public abstract class AABBMixin implements AdvancedHitbox, AABBInterface {
+public abstract class AABBMixin implements AABBAccessor {
     @Shadow public abstract boolean contains(double x, double y, double z);
 
     @Shadow public abstract Optional<Vec3> clip(Vec3 from, Vec3 to);

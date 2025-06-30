@@ -24,9 +24,9 @@
 
 package com.zigythebird.advanced_hitboxes.geckolib.animation;
 
+import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.state.BoneSnapshot;
 import com.zigythebird.advanced_hitboxes.geckolib.constant.dataticket.DataTicket;
-import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 
 import java.util.Map;
 

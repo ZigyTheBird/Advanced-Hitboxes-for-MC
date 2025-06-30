@@ -167,8 +167,7 @@ public class HitboxCache {
                 for (Map.Entry<String, JsonElement> entry : move.asMap().entrySet()) {
                     List<Pair<Integer, Vec3>> transforms = new ArrayList<>();
                     List<Pair<Integer, Vec3>> rotations = new ArrayList<>();
-                    //Todo: Add scaling support.
-                    //List<Pair<Integer, Vec3>> scales = new ArrayList<>();
+                    List<Pair<Integer, Vec3>> scales = new ArrayList<>();
                     JsonObject jsonObject = (JsonObject) entry.getValue();
                     double x = jsonObject.has("x") ? jsonObject.get("x").getAsDouble() : 0;
                     double y = jsonObject.has("y") ? jsonObject.get("y").getAsDouble() : 0;
@@ -176,9 +175,13 @@ public class HitboxCache {
                     double pitch = jsonObject.has("pitch") ? jsonObject.get("pitch").getAsDouble() : 0;
                     double yaw = jsonObject.has("yaw") ? jsonObject.get("yaw").getAsDouble() : 0;
                     double roll = jsonObject.has("roll") ? jsonObject.get("roll").getAsDouble() : 0;
+                    double scaleX = jsonObject.has("scaleX") ? jsonObject.get("scaleX").getAsDouble() : 1;
+                    double scaleY = jsonObject.has("scaleY") ? jsonObject.get("scaleY").getAsDouble() : 1;
+                    double scaleZ = jsonObject.has("scaleZ") ? jsonObject.get("scaleZ").getAsDouble() : 1;
                     transforms.add(new Pair<>(currentTick, new Vec3(x, y, z)));
                     rotations.add(new Pair<>(currentTick, new Vec3(pitch, yaw, roll)));
-                    boneAnims.add(new BoneAnimation(getCorrectPlayerBoneName(entry.getKey()), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(rotations), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(rotations), new KeyframeStack<>()));
+                    scales.add(new Pair<>(currentTick, new Vec3(scaleX, scaleY, scaleZ)));
+                    boneAnims.add(new BoneAnimation(getCorrectPlayerBoneName(entry.getKey()), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(rotations), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(rotations), BakedAnimationsAdapter.buildKeyframeStackFromPlayerAnim(scales)));
                 }
             }
         }
@@ -210,23 +213,7 @@ public class HitboxCache {
     }
 
     public static String getCorrectPlayerBoneName(String name) {
-        StringBuilder sb = new StringBuilder(name.length());
-        boolean uc = false;  // Flag to know whether to uppercase the char.
-        for (int i = 0; i < name.length(); ++i) {
-            int c = name.codePointAt(i);
-            if (c == '_') {
-                // Don't append the codepoint, but flag to uppercase the next codepoint
-                // that isn't a '_'.
-                uc = true;
-            } else {
-                if (uc) {
-                    c = Character.toUpperCase(c);
-                    uc = false;
-                }
-                sb.appendCodePoint(c);
-            }
-        }
-        return sb + "_hitbox";
+        return name.replaceAll("([A-Z])", "_$1").toLowerCase() + "_hitbox";
     }
 
     /**

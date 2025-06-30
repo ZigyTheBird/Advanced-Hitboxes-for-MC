@@ -1,5 +1,6 @@
 package com.zigythebird.advanced_hitboxes.entity;
 
+import com.zigythebird.advanced_hitboxes.accessor.EntityAccessor;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationProcessor;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimatableManager;
 import com.zigythebird.advanced_hitboxes.geckolib.animation.HitboxAnimationController;
@@ -7,7 +8,6 @@ import com.zigythebird.advanced_hitboxes.geckolib.animation.PlayState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
 import com.zigythebird.advanced_hitboxes.geckolib.instance.AdvancedHitboxInstanceCache;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
-import com.zigythebird.advanced_hitboxes.interfaces.EntityInterface;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import net.minecraft.world.entity.Entity;
 
@@ -15,7 +15,7 @@ import java.util.List;
 
 public interface AdvancedHitboxEntity {
     default List<AdvancedHitbox> getHitboxes() {
-        return ((EntityInterface)this).advanced_Hitboxes$getHitboxes();
+        return ((EntityAccessor)this).advanced_Hitboxes$getHitboxes();
     }
 
     HitboxModel getHitboxModel();
@@ -33,7 +33,7 @@ public interface AdvancedHitboxEntity {
      *
      * @param controllers The object to register your controller instances to
      */
-    default void advanced_hitboxes$registerControllers(HitboxAnimatableManager.ControllerRegistrar controllers) {
+    default void registerHitboxControllers(HitboxAnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new HitboxAnimationController<>(this, 0, state -> PlayState.STOP));
     }
 
@@ -61,18 +61,18 @@ public interface AdvancedHitboxEntity {
     /**
      * Each instance of a {@code AdvancedHitboxEntity} must return an instance of an {@link AdvancedHitboxInstanceCache}, which handles instance-specific animation info
      * <p>
-     * Generally speaking, you should create your cache using {@code GeckoLibUtil#createCache} and store it in your animatable instance, returning that cached instance when called
+     * Generally speaking, you should create your cache using {@code HitboxModelUtil#createInstanceCache} and store it in your animatable instance, returning that cached instance when called
      *
-     * @return A cached instance of an {@code AnimatableInstanceCache}
+     * @return A cached instance of an {@code AdvancedHitboxInstanceCache}
      */
-    AdvancedHitboxInstanceCache advanced_hitboxes$getAnimatableInstanceCache();
+    AdvancedHitboxInstanceCache getHitboxInstanceCache();
 
     /**
-     * Override the default handling for instantiating an AnimatableInstanceCache for this animatable
+     * Override the default handling for instantiating an AdvancedHitboxInstanceCache for this entity
      * <p>
      * Don't override this unless you know what you're doing.
      */
-    default AdvancedHitboxInstanceCache advanced_hitboxes$animatableCacheOverride() {
+    default AdvancedHitboxInstanceCache hitboxCacheOverride() {
         return null;
     }
 
@@ -84,5 +84,5 @@ public interface AdvancedHitboxEntity {
         return true;
     }
 
-    default void applyTransformationsToBone(HitboxGeoBone bone, boolean animPlaying) {}
+    default void applyTransformationsToBone(HitboxGeoBone bone) {}
 }
