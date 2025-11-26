@@ -2,8 +2,9 @@ package com.zigythebird.advanced_hitboxes.utils;
 
 import com.mojang.math.Axis;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxBone;
 import com.zigythebird.advanced_hitboxes.misc.CustomPoseStack;
+import com.zigythebird.playeranimcore.math.Vec3f;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
@@ -18,11 +19,15 @@ public class ModMath {
         return new Vec3(vector3f.x, vector3f.y, vector3f.z);
     }
 
-    public static void translateMatrixToBone(CustomPoseStack poseStack, HitboxGeoBone bone) {
+    public static Vec3f vec3ToVec3f(Vec3 vec3) {
+        return new Vec3f((float) vec3.x, (float) vec3.y, (float) vec3.z);
+    }
+
+    public static void translateMatrixToBone(CustomPoseStack poseStack, HitboxBone bone) {
         poseStack.translate(bone.getPosX() / 16f, bone.getPosY() / 16f, bone.getPosZ() / 16f);
     }
 
-    public static void rotateMatrixAroundBone(CustomPoseStack poseStack, HitboxGeoBone bone) {
+    public static void rotateMatrixAroundBone(CustomPoseStack poseStack, HitboxBone bone) {
         if (bone.getRotZ() != 0)
             poseStack.mulPose(Axis.ZP.rotation(bone.getRotZ()));
 
@@ -41,7 +46,7 @@ public class ModMath {
         poseStack.mulPose(new Quaternionf().rotationXYZ((float)rotation.x(), 0, 0));
     }
 
-    public static void scaleMatrixForBone(CustomPoseStack poseStack, HitboxGeoBone bone) {
+    public static void scaleMatrixForBone(CustomPoseStack poseStack, HitboxBone bone) {
         poseStack.scale(bone.getScaleX(), bone.getScaleY(), bone.getScaleZ());
     }
 
@@ -50,7 +55,7 @@ public class ModMath {
         poseStack.translate(pivot.x() / 16f, pivot.y() / 16f, pivot.z() / 16f);
     }
 
-    public static void translateToPivotPoint(CustomPoseStack poseStack, HitboxGeoBone bone) {
+    public static void translateToPivotPoint(CustomPoseStack poseStack, HitboxBone bone) {
         poseStack.translate(bone.getPivotX() / 16f, bone.getPivotY() / 16f, bone.getPivotZ() / 16f);
     }
 
@@ -60,11 +65,11 @@ public class ModMath {
         poseStack.translate(-pivot.x() / 16f, -pivot.y() / 16f, -pivot.z() / 16f);
     }
 
-    public static void translateAwayFromPivotPoint(CustomPoseStack poseStack, HitboxGeoBone bone) {
+    public static void translateAwayFromPivotPoint(CustomPoseStack poseStack, HitboxBone bone) {
         poseStack.translate(-bone.getPivotX() / 16f, -bone.getPivotY() / 16f, -bone.getPivotZ() / 16f);
     }
 
-    public static void prepMatrixForBone(CustomPoseStack poseStack, HitboxGeoBone bone) {
+    public static void prepMatrixForBone(CustomPoseStack poseStack, HitboxBone bone) {
         translateMatrixToBone(poseStack, bone);
         translateToPivotPoint(poseStack, bone);
         rotateMatrixAroundBone(poseStack, bone);

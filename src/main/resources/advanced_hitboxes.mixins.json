@@ -4,8 +4,7 @@
   "plugin": "com.zigythebird.advanced_hitboxes.ModMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "client.LevelRendererMixin",
-    "client.PlayerAnimationsMixin_playeranimatorapiOnly"
+    "client.LevelRendererMixin"
   ],
   "mixins": [
     "accessors.EntityAccessor",
@@ -17,7 +16,6 @@
     "common.EntityMixin",
     "common.EntityTypeMixin",
     "common.LivingEntityMixin",
-    "common.PlayerAnimAPIMixin_playeranimatorapiOnly",
     "common.PlayerMixin",
     "common.ProjectileUtilMixin",
     "common.ServerGamePacketListenerMixin",

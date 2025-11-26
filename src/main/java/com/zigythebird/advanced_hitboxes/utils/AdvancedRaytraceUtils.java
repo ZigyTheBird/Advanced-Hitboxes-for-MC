@@ -38,7 +38,7 @@ public class AdvancedRaytraceUtils {
             if (!predicate.test(entity2))
                 continue;
             if (entity2 instanceof AdvancedHitboxEntity || entity2 instanceof Player) {
-                HitboxUtils.tickAndUpdateHitboxesForEntity((AdvancedHitboxEntity) entity2);
+                HitboxUtils.updateOrMakeHitboxesForEntity((AdvancedHitboxEntity) entity2);
                 for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity2).getHitboxes()) {
                     double e;
                     Optional<Vec3> optional = hitbox.linetest(startVec, endVec);

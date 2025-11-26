@@ -6,26 +6,17 @@ import com.zigythebird.advanced_hitboxes.client.AdvancedHitboxesModClient;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.HitboxCache;
 import com.zigythebird.advanced_hitboxes.registry.ModEntities;
 import com.zigythebird.advanced_hitboxes.registry.ModItems;
-import com.zigythebird.old_fabric_networking.network.ModCodecs;
-import com.zigythebird.old_fabric_networking.network.NetworkManager;
-import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.slf4j.Logger;
 
-import java.util.List;
-
 @Mod(AdvancedHitboxesMod.MOD_ID)
-public class AdvancedHitboxesMod
-{
+public class AdvancedHitboxesMod {
     public static final String MOD_ID = "advanced_hitboxes";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final Gson gson = new Gson();
-
-    public static final ResourceLocation PLAYER_ANIMATION_RESOURCES_SYNC_PACKET = id("player_animation_resources_sync");
 
     public static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
@@ -56,21 +47,11 @@ public class AdvancedHitboxesMod
         return new RuntimeException(resource + ": " + message, exception);
     }
 
-    public AdvancedHitboxesMod(IEventBus modEventBus)
-    {
+    public AdvancedHitboxesMod(IEventBus modEventBus) {
         ModEntities.ENTITIES.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         modEventBus.addListener(AdvancedHitboxesMod::ClientInit);
         HitboxCache.reload();
-
-        if (ModList.get().isLoaded("playeranimatorapi")) {
-            NetworkManager.registerReceiver(PacketFlow.SERVERBOUND, PLAYER_ANIMATION_RESOURCES_SYNC_PACKET, (buf, context) -> {
-                List<ResourceLocation> resources = buf.readList(ModCodecs.RESOURCELOCATION);
-                for (ResourceLocation resource : resources) {
-                    HitboxCache.loadPlayerAnim(resource);
-                }
-            });
-        }
     }
 
     private static void ClientInit(final FMLClientSetupEvent event) {

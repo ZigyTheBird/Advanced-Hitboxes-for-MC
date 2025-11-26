@@ -32,7 +32,7 @@ public class DebugBowItem extends Item {
             message.append("SERVER-SIDE RESULT:");
         }
 
-        if (entityHitResult.getEntity() == null) {
+        if (entityHitResult == null || entityHitResult.getEntity() == null) {
             message.append("\nRaycast did not hit an entity within a 60 block distance.");
         }
         else {

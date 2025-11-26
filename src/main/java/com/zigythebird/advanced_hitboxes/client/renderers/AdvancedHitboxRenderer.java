@@ -22,7 +22,7 @@ import java.util.List;
 public class AdvancedHitboxRenderer {
     public static void renderAdvancedHitboxes(PoseStack poseStack, VertexConsumer buffer, Entity entity, double camX, double camY, double camZ) {
         if (entity instanceof AdvancedHitboxEntity || entity instanceof Player) {
-            HitboxUtils.tickAndUpdateHitboxesForEntity((AdvancedHitboxEntity) entity);
+            HitboxUtils.tickAndUpdateHitboxesForEntity((AdvancedHitboxEntity) entity, false);
 
             PoseStack poseStack1 = new PoseStack();
             for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity).getHitboxes()) {

@@ -26,7 +26,7 @@ package com.zigythebird.advanced_hitboxes.geckolib.loading.object;
 
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxBone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Bone;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Cube;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.ModelProperties;
@@ -56,13 +56,13 @@ public interface BakedModelFactory {
 	BakedHitboxModel constructGeoModel(GeometryTree geometryTree);
 
 	/**
-	 * Construct a {@link HitboxGeoBone} from the relevant raw input data
+	 * Construct a {@link HitboxBone} from the relevant raw input data
 	 *
 	 * @param boneStructure The {@code BoneStructure} comprising the structure of the bone and its children
 	 * @param properties The loaded properties for the model
 	 * @param parent The parent bone for this bone, or null if a top-level bone
 	 */
-	HitboxGeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, @Nullable HitboxGeoBone parent);
+	HitboxBone constructBone(BoneStructure boneStructure, ModelProperties properties, @Nullable HitboxBone parent);
 
 	/**
 	 * Construct a {@link GeoCube} from the relevant raw input data
@@ -71,7 +71,7 @@ public interface BakedModelFactory {
 	 * @param properties The loaded properties for the model
 	 * @param bone The bone this cube belongs to
 	 */
-	GeoCube constructCube(Cube cube, ModelProperties properties, HitboxGeoBone bone);
+	GeoCube constructCube(Cube cube, ModelProperties properties, HitboxBone bone);
 
 	static BakedModelFactory getForNamespace(String namespace) {
 		return FACTORIES.getOrDefault(namespace, DEFAULT_FACTORY);
@@ -94,7 +94,7 @@ public interface BakedModelFactory {
 	final class Builtin implements BakedModelFactory {
 		@Override
 		public BakedHitboxModel constructGeoModel(GeometryTree geometryTree) {
-			List<HitboxGeoBone> bones = new ObjectArrayList<>();
+			List<HitboxBone> bones = new ObjectArrayList<>();
 
 			for (BoneStructure boneStructure : geometryTree.topLevelBones().values()) {
 				bones.add(constructBone(boneStructure, geometryTree.properties(), null));
@@ -104,14 +104,13 @@ public interface BakedModelFactory {
 		}
 
 		@Override
-		public HitboxGeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, HitboxGeoBone parent) {
+		public HitboxBone constructBone(BoneStructure boneStructure, ModelProperties properties, HitboxBone parent) {
 			Bone bone = boneStructure.self();
-			HitboxGeoBone newBone = new HitboxGeoBone(parent, bone.name(), bone.inflate());
-			Vec3 rotation = RenderUtil.arrayToVec(bone.rotation());
 			Vec3 pivot = RenderUtil.arrayToVec(bone.pivot());
+			HitboxBone newBone = new HitboxBone(bone.name(), new Vec3(-pivot.x, pivot.y, pivot.z), parent, bone.hitboxType(), bone.inflate());
+			Vec3 rotation = RenderUtil.arrayToVec(bone.rotation());
 
 			newBone.updateRotation((float)Math.toRadians(-rotation.x), (float)Math.toRadians(-rotation.y), (float)Math.toRadians(rotation.z));
-			newBone.updatePivot((float)-pivot.x, (float)pivot.y, (float)pivot.z);
 
 			for (Cube cube : bone.cubes()) {
 				newBone.getCubes().add(constructCube(cube, properties, newBone));
@@ -121,19 +120,17 @@ public interface BakedModelFactory {
 				newBone.getChildBones().add(constructBone(child, properties, newBone));
 			}
 
-			newBone.hitboxType = bone.hitboxType();
-
 			return newBone;
 		}
 
 		@Override
-		public GeoCube constructCube(Cube cube, ModelProperties properties, HitboxGeoBone bone) {
+		public GeoCube constructCube(Cube cube, ModelProperties properties, HitboxBone bone) {
 			boolean mirror = cube.mirror() == Boolean.TRUE;
 			double inflate = cube.inflate() != null ? cube.inflate() / 16f : (bone.getInflate() == null ? 0 : bone.getInflate() / 16f);
-			Vec3 size = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.size());
-			Vec3 origin = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.origin());
-			Vec3 rotation = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.rotation());
-			Vec3 pivot = software.bernie.geckolib.util.RenderUtil.arrayToVec(cube.pivot());
+			Vec3 size = RenderUtil.arrayToVec(cube.size());
+			Vec3 origin = RenderUtil.arrayToVec(cube.origin());
+			Vec3 rotation = RenderUtil.arrayToVec(cube.rotation());
+			Vec3 pivot = RenderUtil.arrayToVec(cube.pivot());
 			origin = new Vec3(-(origin.x + size.x) / 16d, origin.y / 16d, origin.z / 16d);
 			Vec3 vertexSize = size.multiply(1 / 16d, 1 / 16d, 1 / 16d);
 

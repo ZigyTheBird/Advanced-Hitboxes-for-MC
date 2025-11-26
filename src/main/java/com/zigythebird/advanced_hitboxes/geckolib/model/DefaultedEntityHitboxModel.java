@@ -25,12 +25,13 @@
 package com.zigythebird.advanced_hitboxes.geckolib.model;
 
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
-import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxBone;
 import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
+import com.zigythebird.playeranimcore.animation.AnimationData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+
+import java.util.Optional;
 
 /**
  * {@link DefaultedHitboxModel} specific to {@link net.minecraft.world.entity.Entity Entities}
@@ -72,20 +73,22 @@ public class DefaultedEntityHitboxModel<T extends AdvancedHitboxEntity> extends 
 		return "entity";
 	}
 
-	@Override
-	public void setCustomAnimations(T animatable, long instanceId, AnimationState<T> animationState) {
-		if (!this.turnsHead)
-			return;
-
-		HitboxGeoBone head = getAnimationProcessor().getBone("head");
-
-		if (head != null) {
-			EntityModelData entityData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
-
-			head.setRotX(entityData.headPitch() * Mth.DEG_TO_RAD);
-			head.setRotY(entityData.netHeadYaw() * Mth.DEG_TO_RAD);
-		}
-	}
+	//TODO implement
+	//Don't forget to override this in the player model in order to disable it
+//	@Override
+//	public void setCustomAnimations(T animatable, AnimationData data) {
+//		if (!this.turnsHead)
+//			return;
+//
+//		Optional<HitboxBone> head = this.getBone("head");
+//
+//		if (head.isPresent()) {
+//			EntityModelData entityData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+//
+//			head.get().setRotX(entityData.headPitch() * Mth.DEG_TO_RAD);
+//			head.get().setRotY(entityData.netHeadYaw() * Mth.DEG_TO_RAD);
+//		}
+//	}
 
 	/**
 	 * Changes the constructor-defined model path for this model to an alternate

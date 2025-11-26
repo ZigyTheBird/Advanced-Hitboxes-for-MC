@@ -26,11 +26,9 @@ package com.zigythebird.advanced_hitboxes.geckolib.loading;
 
 import com.google.gson.JsonObject;
 import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.Animation;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.raw.Model;
 import com.zigythebird.advanced_hitboxes.geckolib.loading.json.typeadapter.GeoAdapter;
-import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedAnimations;
 import com.zigythebird.advanced_hitboxes.utils.CommonResourceManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -44,24 +42,6 @@ import java.nio.charset.Charset;
  * Extracts raw information from given files, and other similar functions
  */
 public final class FileLoader {
-    /**
-     * Load up and deserialize an animation json file to its respective {@link Animation} components
-     *
-     * @param location The resource path of the animations file
-     */
-    public static BakedAnimations loadAnimationsFile(ResourceLocation location) {
-        if (location.getPath().endsWith(".geo.json"))
-            throw new IllegalArgumentException("Geo model file found in animations folder!");
-
-        if (!location.getPath().endsWith(".animation.json"))
-            AdvancedHitboxesMod.LOGGER.warn("Found animation file with improper file name format; animation files should end in .animation.json: '" + location + "'");
-
-        JsonObject object = GsonHelper.getAsJsonObject(loadFile(location), "animations");
-        if (object.has("name"))
-            object.addProperty("name", location.getNamespace() + ":" + object.get("name"));
-        return GeoAdapter.GEO_GSON.fromJson(object, BakedAnimations.class);
-    }
-
     /**
      * Load up and deserialize a geo model json file to its respective {@link BakedHitboxModel} format
      *

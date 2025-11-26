@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Container class for cube information, only used in deserialization at startup
  */
-public record Cube(@Nullable Double inflate, @Nullable Boolean mirror, double[] origin, double[] pivot, double[] rotation, double[] size, UVUnion uv) {
+public record Cube(@Nullable Double inflate, @Nullable Boolean mirror, double[] origin, double[] pivot, double[] rotation, double[] size) {
 	public static JsonDeserializer<Cube> deserializer() throws JsonParseException {
 		return (json, type, context) -> {
 			JsonObject obj = json.getAsJsonObject();
@@ -44,9 +44,8 @@ public record Cube(@Nullable Double inflate, @Nullable Boolean mirror, double[] 
 			double[] pivot = JsonUtil.jsonArrayToDoubleArray(GsonHelper.getAsJsonArray(obj, "pivot", null));
 			double[] rotation = JsonUtil.jsonArrayToDoubleArray(GsonHelper.getAsJsonArray(obj, "rotation", null));
 			double[] size = JsonUtil.jsonArrayToDoubleArray(GsonHelper.getAsJsonArray(obj, "size", null));
-			UVUnion uvUnion = GsonHelper.getAsObject(obj, "uv", null, context, UVUnion.class);
 
-			return new Cube(inflate, mirror, origin, pivot, rotation, size, uvUnion);
+			return new Cube(inflate, mirror, origin, pivot, rotation, size);
 		};
 	}
 }

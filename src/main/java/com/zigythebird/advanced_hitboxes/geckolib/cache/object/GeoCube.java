@@ -28,6 +28,6 @@ import com.zigythebird.advanced_hitboxes.geckolib.loading.object.BakedModelFacto
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Baked cuboid for a {@link HitboxGeoBone}
+ * Baked cuboid for a {@link HitboxBone}
  */
 public record GeoCube(BakedModelFactory.VertexSet vertexSet, Vec3 origin, Vec3 pivot, Vec3 rotation, Vec3 size, double inflate, boolean mirror) {}

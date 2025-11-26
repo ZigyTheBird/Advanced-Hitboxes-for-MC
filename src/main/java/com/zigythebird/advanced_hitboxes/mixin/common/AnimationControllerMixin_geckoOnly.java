@@ -17,10 +17,11 @@ public class AnimationControllerMixin_geckoOnly<T extends GeoAnimatable> {
 
     @Shadow @Final protected String name;
 
-    @Inject(method = "tryTriggerAnimation", at = @At("TAIL"))
-    private void tryTriggerAnimation(String animName, CallbackInfoReturnable<Boolean> cir) {
-        if (this.animatable instanceof AdvancedHitboxEntity) {
-            ((AdvancedHitboxEntity)this.animatable).getHitboxInstanceCache().getManagerForId(((Entity)this.animatable).getId()).tryTriggerAnimation(this.name, animName);
-        }
-    }
+    //TODO Think about if this is actually a good idea and implement it correctly if it is
+//    @Inject(method = "tryTriggerAnimation", at = @At("TAIL"))
+//    private void tryTriggerAnimation(String animName, CallbackInfoReturnable<Boolean> cir) {
+//        if (this.animatable instanceof AdvancedHitboxEntity) {
+//            ((AdvancedHitboxEntity)this.animatable).getHitboxInstanceCache().getManagerForId(((Entity)this.animatable).getId()).tryTriggerAnimation(this.name, animName);
+//        }
+//    }
 }

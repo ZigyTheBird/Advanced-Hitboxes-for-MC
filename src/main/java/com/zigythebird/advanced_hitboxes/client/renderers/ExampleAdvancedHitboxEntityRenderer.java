@@ -25,6 +25,6 @@ public class ExampleAdvancedHitboxEntityRenderer extends MobRenderer<ExampleAdva
 
     @Override
     protected void setupRotations(ExampleAdvancedHitboxEntity entity, PoseStack poseStack, float bob, float yBodyRot, float partialTick, float scale) {
-        poseStack.mulPose(Axis.YP.rotation(Mth.DEG_TO_RAD * Mth.wrapDegrees(entity.getYRot())));
+        poseStack.mulPose(Axis.YP.rotation(Mth.DEG_TO_RAD * Mth.wrapDegrees(entity.hitboxRot)));
     }
 }

@@ -1,8 +1,4 @@
 [
-  "advanced_hitboxes:animations/entity/hitbox_test.animation.json",
   "advanced_hitboxes:geo/entity/hitbox_test.geo.json",
-  "advanced_hitboxes:animations/entity/player_hitbox.animation.json",
-  "advanced_hitboxes:geo/entity/player_hitbox.geo.json",
-  "advanced_hitboxes:animations/entity/transformer.animation.json",
-  "advanced_hitboxes:geo/entity/transformer.geo.json"
+  "advanced_hitboxes:geo/entity/player_hitbox.geo.json"
 ]

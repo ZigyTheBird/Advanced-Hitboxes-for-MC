@@ -1,20 +1,17 @@
 package com.zigythebird.advanced_hitboxes.utils;
 
 import com.mojang.math.Axis;
+import com.zigythebird.advanced_hitboxes.AdvancedHitboxesMod;
 import com.zigythebird.advanced_hitboxes.accessor.AABBAccessor;
 import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
-import com.zigythebird.advanced_hitboxes.geckolib.animation.AnimationState;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.BakedHitboxModel;
 import com.zigythebird.advanced_hitboxes.geckolib.cache.object.GeoCube;
-import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxGeoBone;
-import com.zigythebird.advanced_hitboxes.geckolib.constant.DataTickets;
+import com.zigythebird.advanced_hitboxes.geckolib.cache.object.HitboxBone;
 import com.zigythebird.advanced_hitboxes.geckolib.model.HitboxModel;
-import com.zigythebird.advanced_hitboxes.geckolib.model.data.EntityModelData;
 import com.zigythebird.advanced_hitboxes.misc.CustomPoseStack;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
-import com.zigythebird.playeranimatorapi.ModInit;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HitboxUtils {
-    public static <T extends Entity & AdvancedHitboxEntity> void tick(Entity animatable) {
+    public static <T extends Entity & AdvancedHitboxEntity> void tick(Entity animatable, boolean fullTick) {
         if ((animatable instanceof AdvancedHitboxEntity || animatable instanceof Player) &&
                 (!animatable.level().isClientSide || !ClientUtils.hasSinglePlayerServer() || animatable instanceof Player)) {
             LivingEntity livingEntity = animatable instanceof LivingEntity entity ? entity : null;
@@ -39,6 +36,7 @@ public class HitboxUtils {
             float lerpHeadRot = livingEntity == null ? 0 : Mth.rotLerp(tickDelta, livingEntity.yHeadRotO, livingEntity.yHeadRot);
             float netHeadYaw = lerpHeadRot - lerpBodyRot;
 
+            //TODO Already did this in the HitboxModel class for the player I just need to move it here
             float limbSwingAmount = 0;
             float limbSwing = 0;
 
@@ -46,32 +44,21 @@ public class HitboxUtils {
             float motionThreshold = 0.015f;
             Vec3 velocity = animatable.getDeltaMovement();
             float avgVelocity = (float) (Math.abs(velocity.x) + Math.abs(velocity.z) / 2f);
-            AnimationState<T> animationState = new AnimationState<>(((T) animatable), limbSwing, limbSwingAmount, tickDelta, avgVelocity >= motionThreshold && limbSwingAmount != 0);
+            //TODO Uncomment this
+            //HitboxAnimationData animationState = new HitboxAnimationData(((T) animatable), limbSwing, limbSwingAmount, tickDelta, avgVelocity >= motionThreshold && limbSwingAmount != 0);
             long instanceId = animatable.getId();
             HitboxModel<T> currentModel = ((AdvancedHitboxEntity) animatable).getHitboxModel();
 
-            animationState.setData(DataTickets.TICK, ((AdvancedHitboxEntity) animatable).advanced_hitboxes$getTick(animatable));
-            animationState.setData(DataTickets.ENTITY, animatable);
-            animationState.setData(DataTickets.ENTITY_MODEL_DATA, new EntityModelData(shouldSit, animatable instanceof LivingEntity && ((LivingEntity) animatable).isBaby(), -netHeadYaw, -headPitch));
-            currentModel.addAdditionalStateData(((T) animatable), instanceId, animationState::setData);
-            currentModel.handleAnimations(((T) animatable), instanceId, animationState, tickDelta);
+            //TODO Uncomment this
+            //animationState.setData(DataTickets.ENTITY_MODEL_DATA, new EntityModelData(shouldSit, animatable instanceof LivingEntity && ((LivingEntity) animatable).isBaby(), -netHeadYaw, -headPitch));
+            //currentModel.addAdditionalStateData(((T) animatable), instanceId, animationState::setData);
 
-            BakedHitboxModel bakedModel = currentModel.getBakedModel(currentModel.getModelResource((T)animatable));
-            for (HitboxGeoBone bone: bakedModel.topLevelBones()) {
-                applyTransformationsToBone((AdvancedHitboxEntity) animatable, bone);
-            }
+            currentModel.handleAnimations(((T) animatable), tickDelta, fullTick, netHeadYaw);
         }
     }
 
-    public static void applyTransformationsToBone(AdvancedHitboxEntity entity, HitboxGeoBone bone) {
-        entity.applyTransformationsToBone(bone);
-        for (HitboxGeoBone child : bone.getChildBones()) {
-            applyTransformationsToBone(entity, child);
-        }
-    }
-
-    public static void tickAndUpdateHitboxesForEntity(AdvancedHitboxEntity animatable) {
-        tick((Entity) animatable);
+    public static void tickAndUpdateHitboxesForEntity(AdvancedHitboxEntity animatable, boolean fullTick) {
+        tick((Entity) animatable, fullTick);
         updateOrMakeHitboxesForEntity(animatable);
     }
 
@@ -87,14 +74,16 @@ public class HitboxUtils {
         double d2 = Mth.lerp(tickDelta, entity.zOld, entity.getZ());
         poseStack.translate(d0, d1, d2);
 
-        poseStack.mulPose(Axis.YN.rotationDegrees(180));
-        if (animatable instanceof Player)
-            poseStack.scale(0.9375F, 0.9375F, 0.9375F);
+        if (entity instanceof LivingEntity livingEntity) {
+            float scale = livingEntity.getScale();
+            poseStack.scale(scale, scale, scale);
+            hitboxModel.setupRotations(livingEntity, poseStack, livingEntity.tickCount + tickDelta, Mth.rotLerp(tickDelta, CommonSideUtils.getBodyYRot0(livingEntity), CommonSideUtils.getBodyYRot(livingEntity)), tickDelta, scale);
+            if (animatable instanceof Player)
+                poseStack.scale(0.9375F, 0.9375F, 0.9375F);
+            poseStack.scale(1, 1, -1);
+        }
 
-        float lerpedBodyRot = entity instanceof LivingEntity livingEntity ? Mth.rotLerp(tickDelta, CommonSideUtils.getBodyYRot0(livingEntity), CommonSideUtils.getBodyYRot(livingEntity)) : 0;
-        if (lerpedBodyRot != 0) poseStack.mulPose(Axis.YN.rotationDegrees(lerpedBodyRot));
-
-        for (HitboxGeoBone bone : bakedModel.topLevelBones()) {
+        for (HitboxBone bone : bakedModel.topLevelBones()) {
             processBoneRecursively(entity, hitboxes, poseStack, bone);
         }
         //For debugging purposes
@@ -102,23 +91,23 @@ public class HitboxUtils {
     }
 
     public static void processBoneRecursively(Entity entity, List<AdvancedHitbox> hitboxes,
-                                              CustomPoseStack poseStack, HitboxGeoBone bone) {
+                                              CustomPoseStack poseStack, HitboxBone bone) {
         poseStack.pushPose();
         ModMath.prepMatrixForBone(poseStack, bone);
         if (bone.getName().endsWith("_hitbox")) {
             if (bone.hitboxType == null) processHitboxBoneOBB(entity, hitboxes, poseStack, bone);
             else if ("aabb".equalsIgnoreCase(bone.hitboxType)) processHitboxBoneAABB(entity, hitboxes, poseStack, bone);
         }
-        for (HitboxGeoBone child : bone.getChildBones()) {
+        for (HitboxBone child : bone.getChildBones()) {
             processBoneRecursively(entity, hitboxes, poseStack, child);
         }
         poseStack.popPose();
     }
 
     public static void processHitboxBoneOBB(Entity entity, List<AdvancedHitbox> hitboxes,
-                                            CustomPoseStack poseStack, HitboxGeoBone bone) {
+                                            CustomPoseStack poseStack, HitboxBone bone) {
         if (bone.getCubes().isEmpty()) {
-            ModInit.LOGGER.debug("Hitbox bone called {} doesn't have any cubes", bone.getName());
+            AdvancedHitboxesMod.LOGGER.debug("Hitbox bone called {} doesn't have any cubes", bone.getName());
             return;
         }
         poseStack.pushPose();
@@ -163,7 +152,7 @@ public class HitboxUtils {
     }
 
     public static void processHitboxBoneAABB(Entity entity, List<AdvancedHitbox> hitboxes,
-                                            CustomPoseStack poseStack, HitboxGeoBone bone) {
+                                            CustomPoseStack poseStack, HitboxBone bone) {
         AdvancedHitbox hitbox = null;
         for (AdvancedHitbox entry : ((AdvancedHitboxEntity)entity).getHitboxes()) {
             if (entry.getName().equals(bone.getName())) {

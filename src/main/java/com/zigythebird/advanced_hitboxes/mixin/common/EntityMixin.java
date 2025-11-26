@@ -44,7 +44,7 @@ public abstract class EntityMixin implements EntityAccessor {
     private void move(CallbackInfo ci) {
         Entity entity = ((Entity)(Object)this);
         if (entity instanceof AdvancedHitboxEntity advanced && advanced.useAdvancedHitboxesForCollision()) {
-            HitboxUtils.tickAndUpdateHitboxesForEntity(advanced);
+            HitboxUtils.tickAndUpdateHitboxesForEntity(advanced, false);
         }
     }
 
