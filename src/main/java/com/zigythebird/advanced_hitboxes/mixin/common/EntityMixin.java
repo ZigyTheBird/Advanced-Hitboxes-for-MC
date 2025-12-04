@@ -1,7 +1,7 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zigythebird.advanced_hitboxes.accessor.EntityAccessor;
+import com.zigythebird.advanced_hitboxes.interfaces.EntityAccessor;
 import com.zigythebird.advanced_hitboxes.entity.AdvancedHitboxEntity;
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 import com.zigythebird.advanced_hitboxes.phys.OBB;

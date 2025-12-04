@@ -29,18 +29,9 @@ public class OBB implements AdvancedHitbox {
     public OBB(String name, Vec3[] vertices, Vec3 extent, Matrix3f orientation) {
         this.name = name;
         this.vertices = vertices;
-        
-        Vector3d center = new Vector3d();
-        for (Vec3 vec3 : vertices) {
-            center.add(vec3.x(), vec3.y(), vec3.z());
-        }
-        center.div(8);
-        this.center = ModMath.vector3dToVec3(center);
-        
+        this.updateCenter();
         this.extent = extent;
-        this.orientation = new Matrix3f(Math.abs(orientation.m00), Math.abs(orientation.m01), Math.abs(orientation.m02),
-                Math.abs(orientation.m10), Math.abs(orientation.m11), Math.abs(orientation.m12),
-                Math.abs(orientation.m20), Math.abs(orientation.m21), Math.abs(orientation.m22));
+        this.orientation = orientation;
     }
 
     public OBB(AABB box) {
@@ -81,18 +72,18 @@ public class OBB implements AdvancedHitbox {
 
     public void update(Vec3[] vertices, Vec3 extent, Matrix3f orientation) {
         this.vertices = vertices;
+        this.updateCenter();
+        this.extent = extent;
+        this.orientation = orientation;
+    }
 
+    public void updateCenter() {
         Vector3d center = new Vector3d();
         for (Vec3 vec3 : vertices) {
             center.add(vec3.x(), vec3.y(), vec3.z());
         }
         center.div(8);
         this.center = ModMath.vector3dToVec3(center);
-
-        this.extent = extent;
-        this.orientation = new Matrix3f(Math.abs(orientation.m00), Math.abs(orientation.m01), Math.abs(orientation.m02),
-                Math.abs(orientation.m10), Math.abs(orientation.m11), Math.abs(orientation.m12),
-                Math.abs(orientation.m20), Math.abs(orientation.m21), Math.abs(orientation.m22));
     }
 
     public OBB inflate(double value) {
@@ -289,6 +280,7 @@ public class OBB implements AdvancedHitbox {
     public static OBBIntersectResult intersects(OBB a, OBB b) {
         List<Vector3d> test = new ArrayList<>();
 
+        //TODO Clean up this horrible code
         test.add(new Vector3d(a.getAxisX().x, a.getAxisX().y, a.getAxisX().z));
         test.add(new Vector3d(a.getAxisY().x, a.getAxisY().y, a.getAxisY().z));
         test.add(new Vector3d(a.getAxisY().x, a.getAxisY().y, a.getAxisY().z));

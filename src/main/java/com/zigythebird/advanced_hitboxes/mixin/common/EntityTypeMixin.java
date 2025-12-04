@@ -1,7 +1,7 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.zigythebird.advanced_hitboxes.accessor.LivingEntityAccessor;
+import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;

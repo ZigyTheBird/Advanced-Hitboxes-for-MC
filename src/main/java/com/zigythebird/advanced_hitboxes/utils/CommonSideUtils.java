@@ -1,6 +1,6 @@
 package com.zigythebird.advanced_hitboxes.utils;
 
-import com.zigythebird.advanced_hitboxes.accessor.LivingEntityAccessor;
+import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityAccessor;
 import com.zigythebird.advanced_hitboxes.client.utils.ClientUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;

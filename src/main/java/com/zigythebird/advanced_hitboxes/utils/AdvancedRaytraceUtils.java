@@ -18,25 +18,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+//TODO Probably add more methods than this
 public class AdvancedRaytraceUtils {
     public static EntityHitResult raytrace(Entity shooter, float length) {
         Vec3 startVec = shooter.getEyePosition();
         Vec3 endVec = shooter.getEyePosition().add(Vec3.directionFromRotation(shooter.getXRot(), shooter.getYRot()).scale(length));
-        return raytrace(shooter.level(), startVec, endVec, (entity) -> entity != shooter);
+        AABB boundingBox = new AABB(startVec.x-1, startVec.y-1, startVec.z-1, startVec.x+1, startVec.y+1, startVec.z+1).inflate(length);
+        return raytrace(shooter.level(), startVec, endVec, boundingBox, (entity) -> entity != shooter);
     }
 
-    public static EntityHitResult raytrace(Level level, Vec3 startVec, Vec3 endVec, Predicate<Entity> predicate) {
-        final List<Entity> entities = new ArrayList<>();
-
+    public static EntityHitResult raytrace(Level level, Vec3 startVec, Vec3 endVec, AABB boundingBox, Predicate<Entity> predicate) {
         double d = Double.MAX_VALUE;
         Entity entity = null;
         String name = null;
         Vec3 hitPosition = null;
 
-        ((LevelAccessor)level).callGetEntities().get(EntityTypeTest.forClass(Entity.class), AbortableIterationConsumer.forConsumer(entities::add));
-        for (Entity entity2 : entities) {
-            if (!predicate.test(entity2))
-                continue;
+        for (Entity entity2 : level.getEntities((Entity) null, boundingBox, predicate)) {
             if (entity2 instanceof AdvancedHitboxEntity || entity2 instanceof Player) {
                 HitboxUtils.updateOrMakeHitboxesForEntity((AdvancedHitboxEntity) entity2);
                 for (AdvancedHitbox hitbox : ((AdvancedHitboxEntity) entity2).getHitboxes()) {

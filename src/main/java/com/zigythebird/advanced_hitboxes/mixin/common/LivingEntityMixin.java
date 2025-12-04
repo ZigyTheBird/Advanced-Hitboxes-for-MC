@@ -1,6 +1,6 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
-import com.zigythebird.advanced_hitboxes.accessor.LivingEntityAccessor;
+import com.zigythebird.advanced_hitboxes.interfaces.LivingEntityAccessor;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;

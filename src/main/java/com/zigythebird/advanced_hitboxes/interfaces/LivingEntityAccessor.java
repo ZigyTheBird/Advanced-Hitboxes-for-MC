@@ -1,4 +1,4 @@
-package com.zigythebird.advanced_hitboxes.accessor;
+package com.zigythebird.advanced_hitboxes.interfaces;
 
 public interface LivingEntityAccessor {
     float advanced_Hitboxes$commonYBodyRot();

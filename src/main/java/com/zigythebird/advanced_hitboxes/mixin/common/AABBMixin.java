@@ -1,6 +1,6 @@
 package com.zigythebird.advanced_hitboxes.mixin.common;
 
-import com.zigythebird.advanced_hitboxes.accessor.AABBAccessor;
+import com.zigythebird.advanced_hitboxes.interfaces.AABBAccessor;
 import com.zigythebird.advanced_hitboxes.phys.OBB;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;

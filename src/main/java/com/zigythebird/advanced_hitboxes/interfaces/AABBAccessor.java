@@ -1,4 +1,4 @@
-package com.zigythebird.advanced_hitboxes.accessor;
+package com.zigythebird.advanced_hitboxes.interfaces;
 
 import com.zigythebird.advanced_hitboxes.phys.AdvancedHitbox;
 
